@@ -14,8 +14,8 @@ st.set_page_config(
 # --- 自定義 CSS ---
 st.markdown("""
     <style>
-    html, body, [class*="css"] { font-size: 16px; }
-    .stTitle { font-size: 2rem !important; font-weight: bold; }
+    html, body, [class*="css"] { font-size: 14px; }
+    .stTitle { font-size: 1.8rem !important; font-weight: bold; }
     .stMarkdown p { font-size: 1.1rem; line-height: 1.6; }
     .indicator-card { background-color: #f0f2f6; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #ddd; }
     .card-title { font-size: 1.3rem; color: #555; font-weight: bold; margin-bottom: 10px; }
@@ -32,16 +32,16 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 建立側邊欄選單 ---
+# --- 建立側邊欄選單 (台灣優先) ---
 st.sidebar.title("📊 儀表板選單")
 page = st.sidebar.radio(
     "請選擇欲觀察的市場：",
-    ["🇹🇼 台灣市場(台股)", "🌐 全球市場"]
+    ["🇹🇼 台灣市場 (台股)", "🌐 全球市場 (總經)"]
 )
 st.sidebar.markdown("---")
 st.sidebar.caption("使用說明：\n切換選單即可載入不同市場的專屬指標與分析邏輯。")
 
-# --- 共用函數：抓取資料 (依照傳入的市場類型載入不同指標) ---
+# --- 共用函數：抓取資料 ---
 @st.cache_data(ttl=300)
 def fetch_market_data(market_type):
     if market_type == "global":
@@ -132,69 +132,9 @@ def plot_sparkline_with_labels(df, color_class):
     return alt.layer(base_line, max_point, max_text, min_point, min_text).properties(height=100).configure_view(strokeWidth=0)
 
 # ==========================================
-# 頁面一：全球市場邏輯
+# 頁面一：台股市場邏輯 (預設頁面)
 # ==========================================
-if page == "🌐 全球市場 (總經)":
-    st.title("🌐 全球市場儀表板")
-    st.markdown("觀察指標：**Oil (成本)｜DXY (資金)｜VIX (情緒)｜Gold (避險)｜Yield (利率)**")
-    st.markdown("---")
-    
-    summary, history = fetch_market_data("global")
-    
-    if summary:
-        st.subheader("🧠 總經綜合評析")
-        try:
-            def get_val(name, key): return next((x[key] for x in summary if x['name'] == name), "盤整")
-            vix_trend = get_val("VIX (恐慌指數)", "trend_text")
-            gold_trend = get_val("Gold (黃金)", "trend_text")
-            dxy_trend = get_val("DXY (美元指數)", "trend_text")
-            yield_trend = get_val("10Y Yield (殖利率)", "trend_text")
-            oil_trend = get_val("Crude Oil (原油)", "trend_text")
-
-            analysis_text = ""
-            if vix_trend == "偏多" and gold_trend == "偏多":
-                analysis_text += "⚠️ **<span class='trend-bullish'>避險情緒顯著升溫：</span>** 恐慌指數 VIX 與黃金同步走強。資金明顯流向避險資產，對股市通常是強烈警訊。<br><br>"
-            elif vix_trend == "偏空" and gold_trend == "偏空":
-                analysis_text += "🟢 **<span class='trend-bearish'>風險偏好良好：</span>** VIX 均線下方，市場情緒穩定；黃金也未獲青睞。有利於風險資產表現。<br><br>"
-            else:
-                analysis_text += "⚖️ **市場情緒觀望中：** VIX 與黃金走勢分歧，市場情緒處於轉換期或等待下一個明確數據指引。<br><br>"
-
-            if dxy_trend == "偏多" and yield_trend == "偏多":
-                analysis_text += "📉 **<span class='trend-bullish'>全球流動性收緊：</span>** 美元與美債殖利率同步站上均線。美元強勢壓制新興市場，殖利率上升對成長股估值造成壓力。<br><br>"
-            elif dxy_trend == "偏空" and yield_trend == "偏空":
-                analysis_text += "🌊 **<span class='trend-bearish'>資金動能充沛：</span>** 美元走軟且利率下降。全球流動性環境趨於寬鬆。<br><br>"
-            else:
-                analysis_text += "🔄 **資金流動中性：** 美元與殖利率方向不一，代表資金可能正在市場板塊間輪動。<br><br>"
-
-            if oil_trend == "偏多":
-                analysis_text += "🛢️ **成本壓力觀察：** 油價趨勢偏多。需留意是否引發通膨死灰復燃引發央行緊縮擔憂。"
-            else:
-                analysis_text += "🛢️ **成本壓力溫和：** 油價未見強勢反轉，企業成本與通膨壓力暫時可控。"
-
-            st.markdown(f"<div style='background-color: #f9f9f9; padding: 20px; border-radius: 10px; border-left: 5px solid #4a90e2; margin-bottom: 30px;'>{analysis_text}</div>", unsafe_allow_html=True)
-        except Exception as e: st.error(f"評析生成失敗: {e}")
-
-        st.subheader("📊 各項指標詳細數據 (近30日走勢)")
-        for item in summary:
-            precision = ".1f" if "DXY" in item['name'] or "VIX" in item['name'] else ".2f"
-            st.markdown(f"""
-            <div class="indicator-card">
-                <div class="card-title">{item['name']}</div>
-                <div style="display: flex; align-items: baseline; flex-wrap: wrap;">
-                    <span class="current-value {item['color_class']}">{item['current']:{precision}}</span>
-                    <span class="{item['color_class']}" style="font-size: 1.2rem; font-weight: bold; margin-right: 15px;">{item['arrow']} {item['change_pct']:.2f}% (日)</span>
-                    <span class="ma-text">趨勢：<span class="{item['color_class']}" style="font-weight:bold;">{item['trend_text']}</span></span>
-                </div>
-                <div class="ma-text" style="margin-top: 5px;">5日均線: {item['ma5']:{precision}} ｜ 10日均線: {item['ma10']:{precision}}</div>
-            </div>
-            """, unsafe_allow_html=True)
-            st.altair_chart(plot_sparkline_with_labels(history[item['name']], item['color_class']), use_container_width=True)
-            st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
-
-# ==========================================
-# 頁面二：台股市場邏輯
-# ==========================================
-elif page == "🇹🇼 台灣市場 (台股)":
+if page == "🇹🇼 台灣市場 (台股)":
     st.title("🇹🇼 台股核心儀表板")
     st.markdown("觀察指標：**加權(大盤)｜櫃買(內資)｜台積電(權值)｜匯率(熱錢)｜費半(國際科技)**")
     st.markdown("---")
@@ -237,6 +177,66 @@ elif page == "🇹🇼 台灣市場 (台股)":
         st.subheader("📊 各項指標詳細數據 (近30日走勢)")
         for item in summary:
             precision = ".0f" if "加權" in item['name'] or "櫃買" in item['name'] or "費城" in item['name'] else ".2f"
+            st.markdown(f"""
+            <div class="indicator-card">
+                <div class="card-title">{item['name']}</div>
+                <div style="display: flex; align-items: baseline; flex-wrap: wrap;">
+                    <span class="current-value {item['color_class']}">{item['current']:{precision}}</span>
+                    <span class="{item['color_class']}" style="font-size: 1.2rem; font-weight: bold; margin-right: 15px;">{item['arrow']} {item['change_pct']:.2f}% (日)</span>
+                    <span class="ma-text">趨勢：<span class="{item['color_class']}" style="font-weight:bold;">{item['trend_text']}</span></span>
+                </div>
+                <div class="ma-text" style="margin-top: 5px;">5日均線: {item['ma5']:{precision}} ｜ 10日均線: {item['ma10']:{precision}}</div>
+            </div>
+            """, unsafe_allow_html=True)
+            st.altair_chart(plot_sparkline_with_labels(history[item['name']], item['color_class']), use_container_width=True)
+            st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
+
+# ==========================================
+# 頁面二：全球市場邏輯
+# ==========================================
+elif page == "🌐 全球市場 (總經)":
+    st.title("🌐 全球市場儀表板")
+    st.markdown("觀察指標：**Oil (成本)｜DXY (資金)｜VIX (情緒)｜Gold (避險)｜Yield (利率)**")
+    st.markdown("---")
+    
+    summary, history = fetch_market_data("global")
+    
+    if summary:
+        st.subheader("🧠 總經綜合評析")
+        try:
+            def get_val(name, key): return next((x[key] for x in summary if x['name'] == name), "盤整")
+            vix_trend = get_val("VIX (恐慌指數)", "trend_text")
+            gold_trend = get_val("Gold (黃金)", "trend_text")
+            dxy_trend = get_val("DXY (美元指數)", "trend_text")
+            yield_trend = get_val("10Y Yield (殖利率)", "trend_text")
+            oil_trend = get_val("Crude Oil (原油)", "trend_text")
+
+            analysis_text = ""
+            if vix_trend == "偏多" and gold_trend == "偏多":
+                analysis_text += "⚠️ **<span class='trend-bullish'>避險情緒顯著升溫：</span>** 恐慌指數 VIX 與黃金同步走強。資金明顯流向避險資產，對股市通常是強烈警訊。<br><br>"
+            elif vix_trend == "偏空" and gold_trend == "偏空":
+                analysis_text += "🟢 **<span class='trend-bearish'>風險偏好良好：</span>** VIX 均線下方，市場情緒穩定；黃金也未獲青睞。有利於風險資產表現。<br><br>"
+            else:
+                analysis_text += "⚖️ **市場情緒觀望中：** VIX 與黃金走勢分歧，市場情緒處於轉換期或等待下一個明確數據指引。<br><br>"
+
+            if dxy_trend == "偏多" and yield_trend == "偏多":
+                analysis_text += "📉 **<span class='trend-bullish'>全球流動性收緊：</span>** 美元與美債殖利率同步站上均線。美元強勢壓制新興市場，殖利率上升對成長股估值造成壓力。<br><br>"
+            elif dxy_trend == "偏空" and yield_trend == "偏空":
+                analysis_text += "🌊 **<span class='trend-bearish'>資金動能充沛：</span>** 美元走軟且利率下降。全球流動性環境趨於寬鬆。<br><br>"
+            else:
+                analysis_text += "🔄 **資金流動中性：** 美元與殖利率方向不一，代表資金可能正在市場板塊間輪動。<br><br>"
+
+            if oil_trend == "偏多":
+                analysis_text += "🛢️ **成本壓力觀察：** 油價趨勢偏多。需留意是否引發通膨死灰復燃引發央行緊縮擔憂。"
+            else:
+                analysis_text += "🛢️ **成本壓力溫和：** 油價未見強勢反轉，企業成本與通膨壓力暫時可控。"
+
+            st.markdown(f"<div style='background-color: #f9f9f9; padding: 20px; border-radius: 10px; border-left: 5px solid #4a90e2; margin-bottom: 30px;'>{analysis_text}</div>", unsafe_allow_html=True)
+        except Exception as e: st.error(f"評析生成失敗: {e}")
+
+        st.subheader("📊 各項指標詳細數據 (近30日走勢)")
+        for item in summary:
+            precision = ".1f" if "DXY" in item['name'] or "VIX" in item['name'] else ".2f"
             st.markdown(f"""
             <div class="indicator-card">
                 <div class="card-title">{item['name']}</div>
