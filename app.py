@@ -14,8 +14,8 @@ st.set_page_config(
 # --- 自定義 CSS ---
 st.markdown("""
     <style>
-    html, body, [class*="css"] { font-size: 18px; }
-    .stTitle { font-size: 2.5rem !important; font-weight: bold; }
+    html, body, [class*="css"] { font-size: 14px; }
+    .stTitle { font-size: 2rem !important; font-weight: bold; }
     .stMarkdown p { font-size: 1.1rem; line-height: 1.6; }
     .indicator-card { background-color: #f0f2f6; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #ddd; }
     .card-title { font-size: 1.3rem; color: #555; font-weight: bold; margin-bottom: 10px; }
