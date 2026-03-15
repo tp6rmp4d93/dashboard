@@ -14,7 +14,7 @@ st.set_page_config(
 # --- 自定義 CSS ---
 st.markdown("""
     <style>
-    html, body, [class*="css"] { font-size: 14px; }
+    html, body, [class*="css"] { font-size: 16px; }
     .stTitle { font-size: 2rem !important; font-weight: bold; }
     .stMarkdown p { font-size: 1.1rem; line-height: 1.6; }
     .indicator-card { background-color: #f0f2f6; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #ddd; }
@@ -36,7 +36,7 @@ st.markdown("""
 st.sidebar.title("📊 儀表板選單")
 page = st.sidebar.radio(
     "請選擇欲觀察的市場：",
-    ["🌐 全球市場 (總經)", "🇹🇼 台灣市場 (台股)"]
+    ["🇹🇼 台灣市場(台股)", "🌐 全球市場"]
 )
 st.sidebar.markdown("---")
 st.sidebar.caption("使用說明：\n切換選單即可載入不同市場的專屬指標與分析邏輯。")
