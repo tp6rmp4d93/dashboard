@@ -99,34 +99,27 @@ def fetch_all_data():
     all_data = {}
     summary_list = []
     
-    # 計算時間範圍 (抓取 3 個月資料以確保均線準確，顯示則看最近)
-    end_date = datetime.date.today() + datetime.timedelta(days=1)
-    start_date = end_date - datetime.timedelta(days=90)
-    
     for name, ticker in indicators.items():
         try:
-            # 抓取資料
-            df = yf.download(ticker, start=start_date, end=end_date, progress=False)
+            # 改用 yf.Ticker().history 抓取過去 3 個月的資料，避開新版 download 的格式問題
+            df = yf.Ticker(ticker).history(period="3mo")
             
             if not df.empty:
                 # 計算均線
                 df['MA5'] = df['Close'].rolling(window=5).mean()
                 df['MA10'] = df['Close'].rolling(window=10).mean()
                 
-                # 取得最新一筆與上一筆數據
-                latest = df.iloc[-1]
-                prev = df.iloc[-2]
+                # 取得最新一筆與上一筆數據，並強制轉為純數字 (float)
+                current_price = float(df['Close'].iloc[-1])
+                prev_price = float(df['Close'].iloc[-2])
+                ma5_val = float(df['MA5'].iloc[-1])
+                ma10_val = float(df['MA10'].iloc[-1])
                 
-                # 基本數據
-                current_price = latest['Close']
-                prev_price = prev['Close']
+                # 計算漲跌
                 change = current_price - prev_price
                 change_pct = (change / prev_price) * 100
-                ma5_val = latest['MA5']
-                ma10_val = latest['MA10']
                 
                 # --- 核心邏輯：判定趨勢與顏色 ---
-                # 規則：現價 > 5MA 為紅，現價 < 5MA 為綠 (台股習慣)
                 if current_price > ma5_val:
                     trend_text = "偏多"
                     color_class = "trend-bullish" # 紅色
@@ -140,6 +133,8 @@ def fetch_all_data():
                     color_class = "trend-neutral"
                     arrow = "➖"
                 
+                # 重新設定 index 以利後續畫圖
+                df = df.reset_index()
                 all_data[name] = df # 儲存完整歷史用於畫圖
                 
                 summary_list.append({
