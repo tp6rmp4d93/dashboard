@@ -147,7 +147,7 @@ def render_cards(summary, history):
 # ==========================================
 # 網頁主內容區塊
 # ==========================================
-if page == "🇹🇼 台灣市場 (台股)":
+if page == "🇹🇼 台灣市場(台股)":
     st.title("🇹🇼 台股核心儀表板")
     st.markdown("觀察指標：**加權(大盤)｜櫃買(內資)｜台積電(權值)｜匯率(熱錢)｜費半(國際科技)**")
     st.markdown("---")
@@ -178,7 +178,7 @@ if page == "🇹🇼 台灣市場 (台股)":
         st.subheader("📊 核心指標")
         render_cards(summary, history)
 
-elif page == "🌐 全球市場 (總經)":
+elif page == "🌐 全球市場":
     st.title("🌐 全球市場儀表板")
     st.markdown("觀察指標：**Oil (成本)｜DXY (資金)｜VIX (情緒)｜Gold (避險)｜Yield (利率)**")
     st.markdown("---")
