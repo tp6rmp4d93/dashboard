@@ -350,7 +350,7 @@ elif page == "🔍 潛力股自動篩選":
 
     if st.button("🗑️ 清空清單"): st.session_state.stock_pool = []; st.rerun()
 
-    if st.button("🚀 啟ড়ান্ত演算法篩選", use_container_width=True):
+    if st.button("🚀 啟動演算法篩選", use_container_width=True):
         if not current_pool: st.warning("股票池為空，請輸入代碼或由產業池匯入。")
         else:
             if len(current_pool) > 100: st.warning(f"⚠️ 即將掃描 {len(current_pool)} 檔股票。預計需要數分鐘，請耐心等候。")
