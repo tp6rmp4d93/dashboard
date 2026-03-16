@@ -4,6 +4,8 @@ import pandas as pd
 import altair as alt
 import datetime
 import requests
+import csv
+import io
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -52,49 +54,47 @@ if st.session_state.custom_tickers:
 # --- 資料抓取與API模組 ---
 @st.cache_data(ttl=86400) # 快取一天
 def fetch_all_twse_tickers():
-    """介接證交所 OpenAPI，取得所有上市股票代碼"""
+    """獲取所有上市股票代碼 (雙重備援機制)"""
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+    }
+    tickers = []
+    
+    # 🎯 方案一：解析您原本提供的 CSV 連結
     try:
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        }
-        url = "https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL"
+        url_csv = "https://www.twse.com.tw/exchangeReport/STOCK_DAY_ALL?response=open_data"
+        res_csv = requests.get(url_csv, headers=headers, timeout=10, verify=False)
         
-        # 💡 終極秘訣：加入 verify=False 強制略過龜毛的 SSL 驗證
-        res = requests.get(url, headers=headers, timeout=10, verify=False)
-        res.raise_for_status() 
-        data = res.json()
-        
-        tickers = [f"{item['Code']}.TW" for item in data if len(item['Code']) == 4 and item['Code'].isdigit()]
-        return tickers
-    except Exception as e:
-        st.error(f"連線失敗，詳細錯誤原因：{e}") 
-        return []
-
-@st.cache_data(ttl=1800) # 30分鐘更新一次
-def fetch_twse_institutional():
-    try:
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        }
-        url = "https://openapi.twse.com.tw/v1/fund/BFI82U"
-        
-        # 💡 籌碼面同樣加入 verify=False
-        res = requests.get(url, headers=headers, timeout=5, verify=False)
-        data = res.json()
-        
-        inst_data = {"外資": 0.0, "投信": 0.0, "自營商": 0.0}
-        for item in data:
-            name = item.get("type", "")
-            net_val = float(item.get("buy_sell", "0").replace(",", "")) / 100000000
+        # 確定抓回來的不是防爬蟲的 HTML 警告頁面
+        if res_csv.status_code == 200 and "<html" not in res_csv.text.lower()[:20]:
+            reader = csv.reader(io.StringIO(res_csv.text))
+            for row in reader:
+                # 確保第一欄是代碼，且為 4 碼數字
+                if len(row) > 0 and len(row[0]) == 4 and row[0].isdigit():
+                    tickers.append(f"{row[0]}.TW")
             
-            if "外資及陸資" in name and "不含外資自營商" in name: inst_data["外資"] = net_val
-            elif "投信" in name: inst_data["投信"] = net_val
-            elif "自營商" in name: inst_data["自營商"] += net_val
-                
-        inst_data["合計"] = inst_data["外資"] + inst_data["投信"] + inst_data["自營商"]
-        return inst_data
+            if tickers:
+                return list(set(tickers)) # 去除重複並回傳
     except Exception as e:
-        return None
+        pass # 如果方案一失敗，默默繼續執行方案二
+
+    # 🎯 方案二：如果 CSV 連結被擋，改用 OpenAPI 的 JSON 連結
+    try:
+        url_json = "https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL"
+        res_json = requests.get(url_json, headers=headers, timeout=10, verify=False)
+        
+        # 確保回傳的是真正的 JSON，而不是 Expecting value 錯誤
+        if res_json.status_code == 200 and "<html" not in res_json.text.lower()[:20]:
+            data = res_json.json()
+            tickers = [f"{item['Code']}.TW" for item in data if len(item['Code']) == 4 and item['Code'].isdigit()]
+            
+            if tickers:
+                return list(set(tickers))
+    except Exception as e:
+        st.error(f"雙重連線皆失敗！證交所可能正在維護或暫時封鎖了您的 IP。詳細錯誤：{e}")
+        
+    return tickers
 
 @st.cache_data(ttl=1800) # 30分鐘更新一次
 def fetch_twse_institutional():
