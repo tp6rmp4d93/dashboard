@@ -13,7 +13,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # --- 網頁設定 ---
 st.set_page_config(page_title="專業市場儀表板", layout="wide", initial_sidebar_state="expanded")
 
-# --- 🚀 台股八大產業分類字典 (各約 40~50 檔指標股) ---
+# --- 🚀 產業分類庫與全台 ETF 庫 ---
 INDUSTRY_STOCKS = {
     "🛠️ 半導體業": ["2330.TW 台積電", "2454.TW 聯發科", "2303.TW 聯電", "3711.TW 日月光投控", "2379.TW 瑞昱", "2408.TW 南亞科", "3443.TW 創意", "3034.TW 聯詠", "4966.TW 譜瑞-KY", "6415.TW 矽力*-KY", "3529.TW 力旺", "8299.TW 群聯", "6770.TW 力積電", "6488.TW 環球晶", "2338.TW 光罩", "2344.TW 華邦電", "2449.TW 京元電子", "3014.TW 聯陽", "6239.TW 力成", "3189.TW 景碩", "2401.TW 凌陽", "3532.TW 台勝科", "6531.TW 愛普*", "4919.TW 新唐", "3006.TW 晶豪科", "5347.TW 世界", "6147.TW 頎邦", "8016.TW 矽創", "8081.TW 致新", "3260.TW 威剛", "6202.TW 盛群", "3588.TW 通嘉", "2436.TW 偉詮電", "3661.TW 世芯-KY", "6643.TW M31", "8150.TW 南茂", "3141.TW 晶宏", "3583.TW 辛耘", "5269.TW 祥碩", "2458.TW 義隆", "3016.TW 嘉晶", "6138.TW 茂達", "3227.TW 原相", "2481.TW 強茂", "3374.TW 精材", "3035.TW 智原"],
     "💻 電腦及週邊": ["2382.TW 廣達", "3231.TW 緯創", "2356.TW 英業達", "2324.TW 仁寶", "2376.TW 技嘉", "2395.TW 研華", "6669.TW 緯穎", "2353.TW 宏碁", "2357.TW 華碩", "3005.TW 神基", "2362.TW 藍天", "3013.TW 晟銘電", "4938.TW 和碩", "6206.TW 飛捷", "3017.TW 奇鋐", "6166.TW 凌華", "2377.TW 微星", "6515.TW 穎崴", "2301.TW 光寶科", "2397.TW 友通", "3022.TW 威強電", "6117.TW 迎廣", "3046.TW 建碁", "2399.TW 映泰", "2371.TW 大同", "3050.TW 鈺德", "3211.TW 順達", "3515.TW 華擎", "6277.TW 宏正", "6412.TW 群電", "6414.TW 樺漢", "6579.TW 研揚", "8112.TW 至上", "8210.TW 勤誠", "4915.TW 致伸", "3706.TW 神達", "3483.TW 力致", "3413.TW 京鼎", "3058.TW 立德", "2425.TW 承啟", "2387.TW 精元"],
@@ -24,6 +24,9 @@ INDUSTRY_STOCKS = {
     "💡 光電業": ["3008.TW 大立光", "3406.TW 玉晶光", "2409.TW 友達", "3481.TW 群創", "6116.TW 彩晶", "2448.TW 晶電", "6209.TW 今國光", "3141.TW 晶宏", "2426.TW 鼎元", "6120.TW 達運", "3622.TW 洋華", "3019.TW 亞光", "2393.TW 億光", "3576.TW 聯合再生", "6456.TW GIS-KY", "6443.TW 元晶", "2323.TW 中環", "2340.TW 光磊", "2349.TW 錸德", "2374.TW 佳能", "2406.TW 國碩", "2486.TW 一詮", "2489.TW 瑞軒", "3059.TW 華晶科", "3338.TW 泰碩", "3356.TW 奇偶", "3362.TW 先進光", "3441.TW 聯一光", "3450.TW 聯鈞", "3454.TW 晶睿", "3504.TW 揚明光", "3535.TW 晶彩科", "3591.TW 艾笛森", "3698.TW 隆達", "4934.TW 太極"],
     "⚙️ 電機機械業": ["1504.TW 東元", "1519.TW 華城", "1590.TW 亞德客-KY", "1513.TW 中興電", "1514.TW 亞力", "1503.TW 士電", "1515.TW 力山", "1522.TW 堤維西", "1532.TW 勤美", "1521.TW 大億", "1525.TW 江申", "1537.TW 廣隆", "1536.TW 和大", "1589.TW 永冠-KY", "1524.TW 耿鼎", "4532.TW 瑞智", "4571.TW 鈞興-KY", "8996.TW 高力", "4583.TW 台灣精銳", "1506.TW 正道", "1507.TW 永大", "1526.TW 日馳", "1527.TW 鑽全", "1533.TW 車王電", "1539.TW 巨庭", "1558.TW 伸興", "1560.TW 中砂", "1568.TW 倉佑", "1582.TW 信錦", "1583.TW 程泰", "1598.TW 岱宇", "2049.TW 上銀", "2228.TW 劍麟", "2239.TW 英利-KY", "4526.TW 東台", "4536.TW 拓凱", "4540.TW 吉茂", "4551.TW 智伸科"]
 }
+
+FULL_ETF_LIST = {
+    '0050.TW': '元大台灣50', '0051.TW': '元大中型100', '0052.TW': '富邦科技', '0053.TW': '元大電子', '0055.TW': '元大MSCI金融', '0056.TW': '元大高股息', '006201.TW': '元大富櫃50', '006203.TW': '元大MSCI台灣', '006204.TW': '永豐臺灣加權', '006208.TW': '富邦台50', '00679B.TW': '元大美債20年', '00687B.TW': '國泰20年美債', '00690.TW': '兆豐藍籌30', '00692.TW': '富邦公司治理', '00694B.TW': '富邦美債1-3', '00695B.TW': '富邦美債7-10', '00696B.TW': '富邦美債20年', '00697B.TW': '元大美債7-10', '00701.TW': '國泰股利精選30', '00702.TW': '國泰標普低波高息', '00710B.TW': '復華彭博非投等債', '00711B.TW': '復華彭博新興債', '00712.TW': '復華富時不動產', '00713.TW': '元大台灣高息低波', '00714.TW': '群益道瓊美國地產', '00717.TW': '富邦美國特別股', '00719B.TW': '元大美債1-3', '00720B.TW': '元大投資級公司債', '00722B.TW': '群益投資級電信債', '00723B.TW': '群益投資級科技債', '00724B.TW': '群益投資級金融債', '00725B.TW': '國泰投資級公司債', '00726B.TW': '國泰新興投等債', '00727B.TW': '國泰優選非投等債', '00728.TW': '第一金工業30', '00730.TW': '富邦臺灣優質高息', '00731.TW': '復華富時高息低波', '00733.TW': '富邦臺灣中小', '00734B.TW': '台新JPM新興債', '00735.TW': '國泰臺韓科技', '00736.TW': '國泰新興市場', '00739.TW': '元大MSCIA股', '00740B.TW': '富邦全球投等債', '00741B.TW': '富邦全球非投等債', '00746B.TW': '富邦A級公司債', '00749B.TW': '凱基新興債10+', '00750B.TW': '凱基科技債10+', '00751B.TW': '元大AAA至A公司', '00754B.TW': '群益AAA-AA公司', '00755B.TW': '群益投資級公用債', '00756B.TW': '群益投等新興公債', '00758B.TW': '復華能源債', '00759B.TW': '復華製藥債', '00760B.TW': '復華新興企業債', '00761B.TW': '國泰A級公司債', '00764B.TW': '群益25年美債', '00768B.TW': '復華20年美債', '00770.TW': '國泰北美科技', '00771.TW': '元大US高息特別', '00772B.TW': '中信高評級公司債', '00773B.TW': '中信優先金融債', '00775B.TW': '新光投等債15+', '00777B.TW': '凱基AAA至A公司', '00778B.TW': '凱基金融債20+', '00779B.TW': '凱基美債25+', '00780B.TW': '國泰A級金融債', '00781B.TW': '國泰A級科技債', '00782B.TW': '國泰A級公用債', '00785B.TW': '富邦金融投等債', '00786B.TW': '元大10年IG銀行', '00787B.TW': '元大10年IG醫療', '00788B.TW': '元大10年IG電能', '00789B.TW': '復華公司債A3', '00791B.TW': '復華信用債1-5', '00792B.TW': '群益A級公司債', '00793B.TW': '群益AAA-A醫療債', '00795B.TW': '中信美國公債20', '00799B.TW': '國泰A級醫療債', '00830.TW': '國泰費城半導體', '00834B.TW': '第一金金融債10+', '00836B.TW': '永豐10年A公司債', '00840B.TW': '凱基IG精選15+', '00841B.TW': '凱基AAA-AA公司', '00842B.TW': '台新美元銀行債', '00844B.TW': '新光15年IG金融', '00845B.TW': '富邦新興投等債', '00846B.TW': '富邦歐洲銀行債', '00847B.TW': '中信美國市政債', '00848B.TW': '中信新興亞洲債', '00849B.TW': '中信EM主權債0-5', '00850.TW': '元大臺灣ESG永續', '00851.TW': '台新全球AI', '00853B.TW': '統一美債10年Aa-', '00856B.TW': '永豐1-3年美公債', '00857B.TW': '永豐20年美公債', '00858.TW': '永豐美國500大', '00859B.TW': '群益0-1年美債', '00860B.TW': '群益1-5Y投資級', '00862B.TW': '中信投資級公司債', '00863B.TW': '中信全球電信債', '00864B.TW': '中信美國公債0-1', '00867B.TW': '新光A-BBB電信債', '00870B.TW': '元大15年EM主權', '00878.TW': '國泰永續高股息', '00881.TW': '國泰台灣科技龍頭', '00882.TW': '中信中國高股息', '00883B.TW': '中信ESG投資級債', '00884B.TW': '中信低碳新興債', '00888.TW': '永豐台灣ESG', '00890B.TW': '凱基ESGBBB債15', '00891.TW': '中信關鍵半導體', '00892.TW': '富邦台灣半導體', '00894.TW': '中信小資高價30', '00896.TW': '中信綠能及電動車', '00900.TW': '富邦特選高股息3', '00901.TW': '永豐智能車供應鏈', '00904.TW': '新光臺灣半導體3', '00905.TW': 'FT臺灣Smart', '00907.TW': '永豐優息存股', '00908.TW': '富邦入息REITs+', '00909.TW': '國泰數位支付服務', '00911.TW': '兆豐洲際半導體', '00912.TW': '中信臺灣智慧50', '00913.TW': '兆豐台灣晶圓製造', '00915.TW': '凱基優選高股息3', '00916.TW': '國泰全球品牌50', '00917.TW': '中信特選金融', '00918.TW': '大華優利高填息3', '00919.TW': '群益台灣精選高息', '00920.TW': '富邦ESG綠色電力', '00921.TW': '兆豐龍頭等權重', '00922.TW': '國泰台灣領袖50', '00923.TW': '群益台ESG低碳50', '00926.TW': '凱基全球菁英55', '00927.TW': '群益半導體收益', '00928.TW': '中信上櫃ESG30', '00929.TW': '復華台灣科技優息', '00930.TW': '永豐ESG低碳高息', '00931B.TW': '統一美債20年', '00932.TW': '兆豐永續高息等權', '00933B.TW': '國泰10Y+金融債', '00934.TW': '中信成長高股息', '00935.TW': '野村臺灣新科技5', '00936.TW': '台新永續高息中小', '00937B.TW': '群益ESG投等債20', '00938.TW': '凱基優選30', '00939.TW': '統一台灣高息動能', '00940.TW': '元大台灣價值高息', '00942B.TW': '台新美A公司債20', '00943.TW': '兆豐電子高息等權', '00944.TW': '野村趨勢動能高息', '00945B.TW': '凱基美國非投等債', '00946.TW': '群益科技高息成長', '00947.TW': '台新臺灣IC設計', '00948B.TW': '中信優息投資級債', '00950B.TW': '凱基A級公司債', '00951.TW': '台新日本半導體', '00952.TW': '凱基台灣AI50', '00953B.TW': '群益優選非投等債', '00956.TW': '中信日經高股息', '00957B.TW': '兆豐US優選投等', '00958B.TW': '永豐ESG銀行債15', '00959B.TW': '大華投等美債15Y', '00960.TW': '野村全球航運龍頭', '00961.TW': 'FT臺灣永續高息', '00962.TW': '台新AI優息動能', '00963.TW': '中信全球高股息', '00964.TW': '中信亞太高股息', '00966B.TW': '統一ESG投等債15', '00967B.TW': '元大優息美債', '00968B.TW': '元大優息投等債', '00970B.TW': '新光BBB投等債20', '00971.TW': '野村美國研發龍頭', '00972.TW': '野村日本動能高息', '009802.TW': '富邦旗艦50', '009803.TW': '保德信市值動能5', '009804.TW': '聯邦台精彩50', '009808.TW': '華南永昌優選50', '00980A.TW': '主動野村臺灣優選', '00980B.TW': '台新特選IG債10+', '00980D.TW': '主動聯博投等入息', '00981B.TW': '第一金優選非投債', '00981D.TW': '主動中信非投等債', '00982A.TW': '主動群益台灣強棒', '00982B.TW': 'FT投資級債20+', '00984A.TW': '主動安聯台灣高息', '00985B.TW': '群益ESG投等債0-'}
 
 # --- 初始化暫存狀態 ---
 if 'custom_tickers' not in st.session_state: st.session_state.custom_tickers = []
@@ -76,7 +79,9 @@ if st.session_state.custom_tickers:
             if ticker in st.session_state.stock_pool: st.session_state.stock_pool.remove(ticker)
             st.rerun()
 
-# --- 資料抓取模組 ---
+# ==========================================
+# 核心資料抓取與 API 函數 (移至全域範圍，避免快取錯誤)
+# ==========================================
 @st.cache_data(ttl=86400)
 def fetch_all_twse_tickers():
     try:
@@ -209,6 +214,55 @@ def render_cards(summary, history):
         """, unsafe_allow_html=True)
         st.altair_chart(plot_sparkline(history[item['name']], item['color_class']), use_container_width=True)
 
+# --- 🚀 ETF 專屬資料抓取與多執行緒函數 (全域宣告) ---
+def fetch_single_etf(ticker, name):
+    try:
+        tkr = yf.Ticker(ticker)
+        hist = tkr.history(period="1y")
+        if hist.empty: return None
+        
+        current_price = float(hist['Close'].iloc[-1])
+        avg_vol = float(hist['Volume'].tail(5).mean()) / 1000
+        daily_vol = float(hist['Volume'].iloc[-1]) / 1000
+        
+        divs = tkr.dividends
+        ttm_div = 0.0
+        if not divs.empty:
+            one_year_ago = pd.Timestamp.now(tz=divs.index.tz) - pd.DateOffset(days=365)
+            ttm_div = float(divs[divs.index >= one_year_ago].sum())
+        
+        div_yield = (ttm_div / current_price) * 100 if current_price > 0 else 0.0
+        
+        etf_type = "其他"
+        if "B" in ticker or "債" in name: etf_type = "債券型"
+        elif "主動" in name: etf_type = "主動型"
+        elif "高" in name or "息" in name or "收益" in name: etf_type = "高股息"
+        else: etf_type = "市值/主題型"
+        
+        return {
+            "代號": ticker.replace(".TW", ""),
+            "名稱": name,
+            "現價": round(current_price, 2),
+            "近一年累計配息": round(ttm_div, 3),
+            "即時殖利率(%)": round(div_yield, 2),
+            "今日成交量(張)": int(daily_vol),
+            "五日均量(張)": int(avg_vol),
+            "類型": etf_type
+        }
+    except: return None
+
+@st.cache_data(ttl=1800, show_spinner=False)
+def run_all_etfs_multithread():
+    results = []
+    # 限制 8 條執行緒，避免被 Yahoo 阻擋
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+        future_to_etf = {executor.submit(fetch_single_etf, t, n): (t, n) for t, n in FULL_ETF_LIST.items()}
+        for future in concurrent.futures.as_completed(future_to_etf):
+            data = future.result()
+            if data: results.append(data)
+    return sorted(results, key=lambda x: x["即時殖利率(%)"], reverse=True)
+
+
 # ==========================================
 # 網頁主內容區塊
 # ==========================================
@@ -218,6 +272,7 @@ if page == "🇹🇼 台灣市場 (台股)":
     tw_indicators = {"加權指數 (TAIEX)": "^TWII", "櫃買指數 (OTC)": "^TWOII", "台積電 (2330)": "2330.TW", "美元/台幣 (匯率)": "TWD=X", "費城半導體 (SOX)": "^SOX"}
     summary, history = fetch_data(tw_indicators)
     inst_data = fetch_institutional_data()
+    
     if summary:
         st.subheader("🧠 實況數據動態評析")
         dynamic_text = generate_dynamic_analysis(summary, inst_data)
@@ -234,6 +289,7 @@ elif page == "🌐 全球市場 (總經)":
 
 elif page == "📂 產業股票池":
     st.title("📂 台股核心產業分類清單")
+    st.markdown("整理各大產業最具代表性的中大型股，附有中文名稱，板塊輪動一目了然！")
     st.markdown("---")
     for industry_name, stocks in INDUSTRY_STOCKS.items():
         with st.expander(f"{industry_name} ({len(stocks)} 檔)"):
@@ -244,16 +300,19 @@ elif page == "📂 產業股票池":
                 st.success("匯入成功！請前往「潛力股自動篩選」執行策略。")
 
 elif page == "🔍 潛力股自動篩選":
-    st.title("🔍 多維度技術面篩選機")
+    st.title("🔍 多維度技術面篩選機 (支援全市場)")
     st.markdown("---")
+    
+    st.info("💡 **進階功能**：一鍵連線 FinMind 抓取全市場上市股票 (包含中文名稱)。")
     if st.button("📥 一鍵載入「全市場台股 (約1000檔)」", type="primary"):
         with st.spinner("正在連線 API 獲取全市場代碼與名稱..."):
             all_tickers = fetch_all_twse_tickers()
             if all_tickers:
                 st.session_state.stock_pool = list(set(st.session_state.stock_pool + all_tickers))
                 st.success(f"✅ 成功載入！目前篩選池共有 {len(st.session_state.stock_pool)} 檔標的。")
-            else: st.error("❌ 無法連線至 API。")
+            else: st.error("❌ 無法連線至 API，請稍後再試。")
 
+    st.markdown("---")
     col1, col2 = st.columns([1, 2])
     with col1:
         timeframe = st.selectbox("選擇 K線週期：", ["日 K線 (短線)", "週 K線 (中線)", "月 K線 (長線)"])
@@ -265,14 +324,17 @@ elif page == "🔍 潛力股自動篩選":
     if st.button("🗑️ 清空清單"): st.session_state.stock_pool = []; st.rerun()
 
     if st.button("🚀 啟動演算法篩選", use_container_width=True):
-        if not current_pool: st.warning("股票池為空。")
+        if not current_pool: st.warning("股票池為空，請輸入代碼或由產業池匯入。")
         else:
-            if len(current_pool) > 100: st.warning(f"⚠️ 即將掃描 {len(current_pool)} 檔股票。預計需要數分鐘。")
+            if len(current_pool) > 100: st.warning(f"⚠️ 即將掃描 {len(current_pool)} 檔股票。預計需要數分鐘，請耐心等候。")
+            
+            st.markdown("### 📊 篩選結果報告")
             results = {"ma_breakout": [], "vol_up": [], "hammer": []}
             bar = st.progress(0)
             status_text = st.empty()
+            
             for idx, ticker_display in enumerate(current_pool):
-                status_text.text(f"掃描中 {ticker_display} ... ({idx+1}/{len(current_pool)})")
+                status_text.text(f"正在掃描 {ticker_display} ... ({idx+1}/{len(current_pool)})")
                 try:
                     yf_ticker = ticker_display.split()[0]
                     df = yf.Ticker(yf_ticker).history(period=period, interval=interval)
@@ -281,10 +343,11 @@ elif page == "🔍 潛力股自動篩選":
                         curr, prev = df.iloc[-1], df.iloc[-2]
                         C, O, H, L, V, prev_V = curr['Close'], curr['Open'], curr['High'], curr['Low'], curr['Volume'], prev['Volume']
                         ma5, ma10, ma20 = curr['MA5'], curr['MA10'], curr['MA20']
-                        if (C > O) and ((min(O, C) - L) > abs(C - O)*2) and ((H - max(O, C)) < abs(C - O)*0.5): results["hammer"].append(f"**{ticker_display}** ({C:.2f})")
-                        if (C > prev['Close']) and (V > prev_V * 1.5): results["vol_up"].append(f"**{ticker_display}** ({C:.2f})")
+                        
+                        if (C > O) and ((min(O, C) - L) > abs(C - O)*2) and ((H - max(O, C)) < abs(C - O)*0.5): results["hammer"].append(f"**{ticker_display}** (現價: {C:.2f})")
+                        if (C > prev['Close']) and (V > prev_V * 1.5): results["vol_up"].append(f"**{ticker_display}** (現價: {C:.2f})")
                         max_ma, min_ma = max(ma5, ma10, ma20), min(ma5, ma10, ma20)
-                        if (((max_ma - min_ma) / min_ma) < 0.03) and (C > max_ma) and (prev['Close'] < max_ma): results["ma_breakout"].append(f"**{ticker_display}** ({C:.2f})")
+                        if (((max_ma - min_ma) / min_ma) < 0.03) and (C > max_ma) and (prev['Close'] < max_ma): results["ma_breakout"].append(f"**{ticker_display}** (現價: {C:.2f})")
                 except: pass
                 bar.progress((idx + 1) / len(current_pool))
                 
@@ -294,11 +357,11 @@ elif page == "🔍 潛力股自動篩選":
                 for s in results["ma_breakout"]: st.error(f"🚀 {s}")
             else: st.write("無符合標的。")
             st.markdown("#### 📈 價漲量增 (資金湧入)")
-            if results["vol_up"]: 
+            if results["vol_up"]:
                 for s in results["vol_up"]: st.success(s)
             else: st.write("無符合標的。")
             st.markdown("#### 🔨 陽線錘子 (底部支撐)")
-            if results["hammer"]: 
+            if results["hammer"]:
                 for s in results["hammer"]: st.warning(s)
             else: st.write("無符合標的。")
 
@@ -307,68 +370,12 @@ elif page == "🔍 潛力股自動篩選":
 # ==========================================
 elif page == "💰 即時 ETF 殖利率與人氣模組":
     st.markdown("<div class='show-df'>", unsafe_allow_html=True)
-    st.title("💰 終極版 100 檔台股 ETF 即時運算引擎")
-    st.markdown("系統正運用 **多執行緒 (Multi-threading)** 技術，向 Yahoo Finance 引擎以每秒並發的方式，閃電抓取全台灣 100 檔熱門 ETF 的「今日現價」、「過去一年配息總額」以及「最新成交量」，並即時算出最精準的年化殖利率！")
+    st.title("💰 台股 ETF 即時運算引擎")
+    st.markdown("系統正運用 **多執行緒 (Multi-threading)** 技術，向 Yahoo Finance 引擎以並發方式閃電抓取全台灣 熱門 ETF 的「今日現價」、「過去一年配息總額」以及「最新成交量」，並即時算出最精準的年化殖利率！")
     st.info("💡 **操作提示**：點擊表格上方的標題（例如：`即時殖利率(%)` 或 `今日成交量(張)`），系統就會自動幫您由高到低排序！")
     st.markdown("---")
     
-    # 內建您提供的 100 檔超完整 ETF 名單字典
-    FULL_ETF_LIST = {
-        '0050.TW': '元大台灣50', '0051.TW': '元大中型100', '0052.TW': '富邦科技', '0053.TW': '元大電子', '0055.TW': '元大MSCI金融', '0056.TW': '元大高股息', '006201.TW': '元大富櫃50', '006203.TW': '元大MSCI台灣', '006204.TW': '永豐臺灣加權', '006208.TW': '富邦台50', '00679B.TW': '元大美債20年', '00687B.TW': '國泰20年美債', '00690.TW': '兆豐藍籌30', '00692.TW': '富邦公司治理', '00694B.TW': '富邦美債1-3', '00695B.TW': '富邦美債7-10', '00696B.TW': '富邦美債20年', '00697B.TW': '元大美債7-10', '00701.TW': '國泰股利精選30', '00702.TW': '國泰標普低波高息', '00710B.TW': '復華彭博非投等債', '00711B.TW': '復華彭博新興債', '00712.TW': '復華富時不動產', '00713.TW': '元大台灣高息低波', '00714.TW': '群益道瓊美國地產', '00717.TW': '富邦美國特別股', '00719B.TW': '元大美債1-3', '00720B.TW': '元大投資級公司債', '00722B.TW': '群益投資級電信債', '00723B.TW': '群益投資級科技債', '00724B.TW': '群益投資級金融債', '00725B.TW': '國泰投資級公司債', '00726B.TW': '國泰新興投等債', '00727B.TW': '國泰優選非投等債', '00728.TW': '第一金工業30', '00730.TW': '富邦臺灣優質高息', '00731.TW': '復華富時高息低波', '00733.TW': '富邦臺灣中小', '00734B.TW': '台新JPM新興債', '00735.TW': '國泰臺韓科技', '00736.TW': '國泰新興市場', '00739.TW': '元大MSCIA股', '00740B.TW': '富邦全球投等債', '00741B.TW': '富邦全球非投等債', '00746B.TW': '富邦A級公司債', '00749B.TW': '凱基新興債10+', '00750B.TW': '凱基科技債10+', '00751B.TW': '元大AAA至A公司', '00754B.TW': '群益AAA-AA公司', '00755B.TW': '群益投資級公用債', '00756B.TW': '群益投等新興公債', '00758B.TW': '復華能源債', '00759B.TW': '復華製藥債', '00760B.TW': '復華新興企業債', '00761B.TW': '國泰A級公司債', '00764B.TW': '群益25年美債', '00768B.TW': '復華20年美債', '00770.TW': '國泰北美科技', '00771.TW': '元大US高息特別', '00772B.TW': '中信高評級公司債', '00773B.TW': '中信優先金融債', '00775B.TW': '新光投等債15+', '00777B.TW': '凱基AAA至A公司', '00778B.TW': '凱基金融債20+', '00779B.TW': '凱基美債25+', '00780B.TW': '國泰A級金融債', '00781B.TW': '國泰A級科技債', '00782B.TW': '國泰A級公用債', '00785B.TW': '富邦金融投等債', '00786B.TW': '元大10年IG銀行', '00787B.TW': '元大10年IG醫療', '00788B.TW': '元大10年IG電能', '00789B.TW': '復華公司債A3', '00791B.TW': '復華信用債1-5', '00792B.TW': '群益A級公司債', '00793B.TW': '群益AAA-A醫療債', '00795B.TW': '中信美國公債20', '00799B.TW': '國泰A級醫療債', '00830.TW': '國泰費城半導體', '00834B.TW': '第一金金融債10+', '00836B.TW': '永豐10年A公司債', '00840B.TW': '凱基IG精選15+', '00841B.TW': '凱基AAA-AA公司', '00842B.TW': '台新美元銀行債', '00844B.TW': '新光15年IG金融', '00845B.TW': '富邦新興投等債', '00846B.TW': '富邦歐洲銀行債', '00847B.TW': '中信美國市政債', '00848B.TW': '中信新興亞洲債', '00849B.TW': '中信EM主權債0-5', '00850.TW': '元大臺灣ESG永續', '00851.TW': '台新全球AI', '00853B.TW': '統一美債10年Aa-', '00856B.TW': '永豐1-3年美公債', '00857B.TW': '永豐20年美公債', '00858.TW': '永豐美國500大', '00859B.TW': '群益0-1年美債', '00860B.TW': '群益1-5Y投資級', '00862B.TW': '中信投資級公司債', '00863B.TW': '中信全球電信債', '00864B.TW': '中信美國公債0-1', '00867B.TW': '新光A-BBB電信債', '00870B.TW': '元大15年EM主權', '00878.TW': '國泰永續高股息', '00881.TW': '國泰台灣科技龍頭', '00882.TW': '中信中國高股息', '00883B.TW': '中信ESG投資級債', '00884B.TW': '中信低碳新興債', '00888.TW': '永豐台灣ESG', '00890B.TW': '凱基ESGBBB債15', '00891.TW': '中信關鍵半導體', '00892.TW': '富邦台灣半導體', '00894.TW': '中信小資高價30', '00896.TW': '中信綠能及電動車', '00900.TW': '富邦特選高股息3', '00901.TW': '永豐智能車供應鏈', '00904.TW': '新光臺灣半導體3', '00905.TW': 'FT臺灣Smart', '00907.TW': '永豐優息存股', '00908.TW': '富邦入息REITs+', '00909.TW': '國泰數位支付服務', '00911.TW': '兆豐洲際半導體', '00912.TW': '中信臺灣智慧50', '00913.TW': '兆豐台灣晶圓製造', '00915.TW': '凱基優選高股息3', '00916.TW': '國泰全球品牌50', '00917.TW': '中信特選金融', '00918.TW': '大華優利高填息3', '00919.TW': '群益台灣精選高息', '00920.TW': '富邦ESG綠色電力', '00921.TW': '兆豐龍頭等權重', '00922.TW': '國泰台灣領袖50', '00923.TW': '群益台ESG低碳50', '00926.TW': '凱基全球菁英55', '00927.TW': '群益半導體收益', '00928.TW': '中信上櫃ESG30', '00929.TW': '復華台灣科技優息', '00930.TW': '永豐ESG低碳高息', '00931B.TW': '統一美債20年', '00932.TW': '兆豐永續高息等權', '00933B.TW': '國泰10Y+金融債', '00934.TW': '中信成長高股息', '00935.TW': '野村臺灣新科技5', '00936.TW': '台新永續高息中小', '00937B.TW': '群益ESG投等債20', '00938.TW': '凱基優選30', '00939.TW': '統一台灣高息動能', '00940.TW': '元大台灣價值高息', '00942B.TW': '台新美A公司債20', '00943.TW': '兆豐電子高息等權', '00944.TW': '野村趨勢動能高息', '00945B.TW': '凱基美國非投等債', '00946.TW': '群益科技高息成長', '00947.TW': '台新臺灣IC設計', '00948B.TW': '中信優息投資級債', '00950B.TW': '凱基A級公司債', '00951.TW': '台新日本半導體', '00952.TW': '凱基台灣AI50', '00953B.TW': '群益優選非投等債', '00956.TW': '中信日經高股息', '00957B.TW': '兆豐US優選投等', '00958B.TW': '永豐ESG銀行債15', '00959B.TW': '大華投等美債15Y', '00960.TW': '野村全球航運龍頭', '00961.TW': 'FT臺灣永續高息', '00962.TW': '台新AI優息動能', '00963.TW': '中信全球高股息', '00964.TW': '中信亞太高股息', '00966B.TW': '統一ESG投等債15', '00967B.TW': '元大優息美債', '00968B.TW': '元大優息投等債', '00970B.TW': '新光BBB投等債20', '00971.TW': '野村美國研發龍頭', '00972.TW': '野村日本動能高息', '009802.TW': '富邦旗艦50', '009803.TW': '保德信市值動能5', '009804.TW': '聯邦台精彩50', '009808.TW': '華南永昌優選50', '00980A.TW': '主動野村臺灣優選', '00980B.TW': '台新特選IG債10+', '00980D.TW': '主動聯博投等入息', '00981B.TW': '第一金優選非投債', '00981D.TW': '主動中信非投等債', '00982A.TW': '主動群益台灣強棒', '00982B.TW': 'FT投資級債20+', '00984A.TW': '主動安聯台灣高息', '00985B.TW': '群益ESG投等債0-'}
-
-    # 定義單檔抓取函數，準備餵給多執行緒
-    def fetch_single_etf(ticker, name):
-        try:
-            tkr = yf.Ticker(ticker)
-            hist = tkr.history(period="1y")
-            if hist.empty: return None
-            
-            current_price = float(hist['Close'].iloc[-1])
-            avg_vol = float(hist['Volume'].tail(5).mean()) / 1000
-            daily_vol = float(hist['Volume'].iloc[-1]) / 1000
-            
-            divs = tkr.dividends
-            ttm_div = 0.0
-            if not divs.empty:
-                # 只算過去365天內的真實配息
-                one_year_ago = pd.Timestamp.now(tz=divs.index.tz) - pd.DateOffset(days=365)
-                ttm_div = float(divs[divs.index >= one_year_ago].sum())
-            
-            div_yield = (ttm_div / current_price) * 100 if current_price > 0 else 0.0
-            
-            # 智慧判斷ETF類型
-            etf_type = "其他"
-            if "B" in ticker or "債" in name: etf_type = "債券型"
-            elif "主動" in name: etf_type = "主動型"
-            elif "高" in name or "息" in name or "收益" in name: etf_type = "高股息"
-            else: etf_type = "市值/主題型"
-            
-            return {
-                "代號": ticker.replace(".TW", ""),
-                "名稱": name,
-                "現價": round(current_price, 2),
-                "近一年累計配息": round(ttm_div, 3),
-                "即時殖利率(%)": round(div_yield, 2),
-                "今日成交量(張)": int(daily_vol),
-                "五日均量(張)": int(avg_vol),
-                "類型": etf_type
-            }
-        except: return None
-
-    # 快取整併函數，避免頻繁請求
-    @st.cache_data(ttl=1800)
-    def run_all_etfs_multithread():
-        results = []
-        # 使用 ThreadPoolExecutor 以 10 條執行緒並發抓取 (大幅加速)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-            future_to_etf = {executor.submit(fetch_single_etf, t, n): (t, n) for t, n in FULL_ETF_LIST.items()}
-            for future in concurrent.futures.as_completed(future_to_etf):
-                data = future.result()
-                if data: results.append(data)
-        # 預設依殖利率排序
-        return sorted(results, key=lambda x: x["即時殖利率(%)"], reverse=True)
-
-    with st.spinner(f"⚡ 正在透過多執行緒引擎閃電抓取全台 100 檔 ETF 的即時股價與配息資料... (約需 10~15 秒)"):
+    with st.spinner(f"⚡ 正在透過多執行緒引擎閃電抓取全台 ETF 的即時股價與配息資料... (約需 10~15 秒)"):
         etf_data = run_all_etfs_multithread()
         
     if etf_data:
@@ -409,7 +416,7 @@ elif page == "💰 即時 ETF 殖利率與人氣模組":
             }
         )
     else:
-        st.error("暫時無法取得資料。")
+        st.error("暫時無法取得 ETF 即時資料，請稍後重試。")
         
     st.markdown("---")
     st.caption("註：年化殖利率採計過去 365 天內該檔 ETF 實際發放的除息總和，除以 Yahoo Finance 即時現價而得。新上市未滿一年或近期未配息之 ETF，數值可能為 0。")
