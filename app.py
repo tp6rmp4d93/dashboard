@@ -6,10 +6,6 @@ import datetime
 import requests
 import urllib3
 import concurrent.futures
-import json
-import os
-import time
-import hashlib
 
 # 關閉不安全的 SSL 憑證警告
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -17,7 +13,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # --- 網頁設定 ---
 st.set_page_config(page_title="專業市場儀表板", layout="wide", initial_sidebar_state="expanded")
 
-# --- 🚀 全新產業鏈與趨勢主題分類庫 (每類至少 40 檔以上) ---
+# --- 🚀 全新產業鏈與趨勢主題分類庫 ---
 INDUSTRY_STOCKS = {
     "🔌 電子工業：半導體業 (IC設計/代工/封測)": ["2330.TW 台積電", "2454.TW 聯發科", "2303.TW 聯電", "3711.TW 日月光投控", "2379.TW 瑞昱", "2408.TW 南亞科", "3443.TW 創意", "3034.TW 聯詠", "4966.TW 譜瑞-KY", "6415.TW 矽力*-KY", "3529.TW 力旺", "8299.TW 群聯", "6770.TW 力積電", "6488.TW 環球晶", "2338.TW 光罩", "2449.TW 京元電子", "6239.TW 力成", "3189.TW 景碩", "6531.TW 愛普*", "4919.TW 新唐", "3661.TW 世芯-KY", "5269.TW 祥碩", "2458.TW 義隆", "3035.TW 智原", "3583.TW 辛耘", "3141.TW 晶宏", "3006.TW 晶豪科", "5347.TW 世界", "6147.TW 頎邦", "8016.TW 矽創", "8081.TW 致新", "3260.TW 威剛", "6202.TW 盛群", "3588.TW 通嘉", "2436.TW 偉詮電", "6643.TW M31", "8150.TW 南茂", "3016.TW 嘉晶", "6138.TW 茂達", "3227.TW 原相", "2481.TW 強茂", "3374.TW 精材", "5283.TW 達發", "3592.TW 瑞鼎", "2434.TW 統懋"],
     "🔌 電子工業：電子零組件 (PCB/被動/連接器)": ["2308.TW 台達電", "2327.TW 國巨", "3037.TW 欣興", "2313.TW 華通", "3044.TW 健鼎", "2368.TW 金像電", "3324.TW 雙鴻", "2383.TW 台光電", "2492.TW 華新科", "6269.TW 台郡", "3042.TW 晶技", "6197.TW 佳必琪", "3217.TW 優群", "2351.TW 順德", "2428.TW 興勤", "3023.TW 信邦", "3031.TW 佰鴻", "2355.TW 敬鵬", "3026.TW 禾伸堂", "2316.TW 楠梓電", "2367.TW 燿華", "2385.TW 群光", "2420.TW 新巨", "2439.TW 美律", "2457.TW 飛宏", "2472.TW 立隆電", "2478.TW 大毅", "2484.TW 希華", "3003.TW 健和興", "3015.TW 全漢", "3033.TW 威健", "3090.TW 日電貿", "3305.TW 昇貿", "3308.TW 聯德", "2415.TW 錩新", "2431.TW 聯昌", "2440.TW 太空梭", "2460.TW 建通", "2462.TW 良得電", "2493.TW 揚博", "3209.TW 全科", "3296.TW 勝德", "3311.TW 閎暉"],
@@ -47,7 +43,7 @@ FULL_ETF_LIST = {
 if 'custom_tickers' not in st.session_state: st.session_state.custom_tickers = []
 if 'stock_pool' not in st.session_state: st.session_state.stock_pool = ["2330.TW 台積電", "2317.TW 鴻海", "2454.TW 聯發科", "2881.TW 富邦金", "2603.TW 長榮"]
 
-# --- 自定義 CSS (移除隱藏全部 dataframe 的邏輯，改由元件端控制) ---
+# --- 自定義 CSS ---
 st.markdown("""
     <style>
     html, body, [class*="css"] { font-size: 18px; }
@@ -60,7 +56,6 @@ st.markdown("""
     .trend-bullish { color: #FF4B4B !important; }
     .trend-bearish { color: #00C853 !important; }
     .trend-neutral { color: #777 !important; }
-    /* 讓側邊欄的按鈕字體大一點 */
     .stButton>button { width: 100%; }
     </style>
 """, unsafe_allow_html=True)
@@ -170,10 +165,10 @@ def generate_dynamic_analysis(summary, inst_data, global_data):
         up_down = "上漲" if chg > 0 else "下跌"
         ma5_rel = "站上" if C >= ma5 else "跌破"
         ma20_rel = "守穩" if C >= ma20 else "失守"
-        vol_str = f"{vol / 100000000:,.0f} 億 (Yahoo原始單位)" if vol > 0 else "暫無即時量能資料"
+        vol_str = f"{vol / 100000000:,.0f} 億" if vol > 0 else "暫無即時量能資料"
         
-        analysis = f"📉 **大盤實況與技術面觀察**：\n今日加權指數開盤為 {O:,.0f} 點，盤中最高來到 {H:,.0f} 點，最低至 {L:,.0f} 點。**終場收在 {C:,.0f} 點，{up_down} {abs(chg):,.0f} 點 ({pct:+.2f}%)**，成交量為 {vol_str}。"
-        analysis += f" 從技術面來看，目前加權指數已{ma5_rel}短期周線 ({ma5:,.0f})，且{ma20_rel}中期生命線即月線 ({ma20:,.0f})，多空交戰激烈。\n\n"
+        analysis = f"📉 **大盤實況與技術面觀察**：\n今日加權指數開盤為 **{O:,.0f}** 點，盤中最高來到 **{H:,.0f}** 點，最低至 **{L:,.0f}** 點。**終場收在 {C:,.0f} 點，{up_down} {abs(chg):,.0f} 點 ({pct:+.2f}%)**，成交量為 **{vol_str}**。"
+        analysis += f" 從技術面來看，目前加權指數已**{ma5_rel}短期周線 ({ma5:,.0f})**，且**{ma20_rel}中期生命線即月線 ({ma20:,.0f})**，多空交戰激烈。\n\n"
     else:
         analysis = "📉 **大盤實況**：目前暫無加權指數連線資料。\n\n"
 
@@ -196,50 +191,33 @@ def generate_dynamic_analysis(summary, inst_data, global_data):
         analysis += f"\n原物料與避險指標方面，最新原油報價為 {global_data['原油']['current']:.2f} 美元/桶 ({global_data['原油']['change_pct']:+.2f}%)，黃金報價為 {global_data['黃金']['current']:,.1f} 美元/盎司 ({global_data['黃金']['change_pct']:+.2f}%)。"
     return analysis
 
-# 🚀 升級圖表：加入 X, Y 軸與互動式 Tooltip
-def plot_sparkline(df, color_class):
-    line_color = '#FF4B4B' if color_class == 'trend-bullish' else '#00C853'
-    if color_class == 'trend-neutral': line_color = '#777'
-    
-    plot_df = df.tail(30).copy()
-    plot_df['DateStr'] = plot_df['Date'].dt.strftime('%m/%d')
-    plot_df['Label'] = plot_df['Close'].round(2).astype(str) + " (" + plot_df['DateStr'] + ")"
-    
-    max_idx, min_idx = plot_df['Close'].idxmax(), plot_df['Close'].idxmin()
-    
-    # 建立主線條，開啟 tooltip
-    base_line = alt.Chart(plot_df).mark_line(interpolate='basis', strokeWidth=3).encode(
-        x=alt.X('Date:T', axis=alt.Axis(title='日期', format='%m/%d', labelAngle=-45, grid=False)),
-        y=alt.Y('Close:Q', scale=alt.Scale(zero=False), axis=alt.Axis(title='收盤價', grid=True)),
-        color=alt.value(line_color),
-        tooltip=[alt.Tooltip('DateStr:N', title='日期'), alt.Tooltip('Close:Q', title='收盤價', format='.2f')]
-    )
-    
-    # 標示最高最低點
-    max_text = alt.Chart(plot_df.loc[[max_idx]]).mark_text(align='center', baseline='bottom', dy=-10, color='#555', fontSize=11, fontWeight='bold').encode(x='Date:T', y='Close:Q', text='Label')
-    min_text = alt.Chart(plot_df.loc[[min_idx]]).mark_text(align='center', baseline='top', dy=10, color='#555', fontSize=11, fontWeight='bold').encode(x='Date:T', y='Close:Q', text='Label')
-    
-    # 圖表大小設定並允許互動
-    return alt.layer(base_line, max_text, min_text).properties(height=200).interactive()
+@st.cache_data(ttl=10800, show_spinner=False)
+def run_screening_engine(pool, p, i):
+    res = {"ma_breakout": [], "vol_up": [], "hammer": []}
+    for ticker_display in pool:
+        try:
+            yf_ticker = ticker_display.split()[0]
+            df = yf.Ticker(yf_ticker).history(period=p, interval=i)
+            if len(df) >= 20:
+                df['MA5'] = df['Close'].rolling(5).mean()
+                df['MA10'] = df['Close'].rolling(10).mean()
+                df['MA20'] = df['Close'].rolling(20).mean()
+                
+                curr, prev = df.iloc[-1], df.iloc[-2]
+                C, O, H, L, V, prev_V = curr['Close'], curr['Open'], curr['High'], curr['Low'], curr['Volume'], prev['Volume']
+                ma5, ma10, ma20 = curr['MA5'], curr['MA10'], curr['MA20']
+                
+                last_3_days = df.tail(3)
+                low_3d, high_3d, avg_3d = last_3_days['Low'].min(), last_3_days['High'].max(), last_3_days['Close'].mean()
+                price_info = f"(現價: {C:.2f} | 近3日低: {low_3d:.2f} | 近3日高: {high_3d:.2f} | 3日均: {avg_3d:.2f})"
+                
+                if (C > O) and ((min(O, C) - L) > abs(C - O)*2) and ((H - max(O, C)) < abs(C - O)*0.5): res["hammer"].append(f"**{ticker_display}** {price_info}")
+                if (C > prev['Close']) and (V > prev_V * 1.5): res["vol_up"].append(f"**{ticker_display}** {price_info}")
+                max_ma, min_ma = max(ma5, ma10, ma20), min(ma5, ma10, ma20)
+                if (((max_ma - min_ma) / min_ma) < 0.03) and (C > max_ma) and (prev['Close'] < max_ma): res["ma_breakout"].append(f"**{ticker_display}** {price_info}")
+        except: pass
+    return res, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-def render_cards(summary, history):
-    for item in summary:
-        precision = ".0f" if "加權" in item['name'] or "櫃買" in item['name'] or "費城" in item['name'] else ".2f"
-        if "DXY" in item['name'] or "VIX" in item['name']: precision = ".1f"
-        st.markdown(f"""
-        <div class="indicator-card">
-            <div class="card-title">{item['name']}</div>
-            <div style="display: flex; align-items: baseline; flex-wrap: wrap;">
-                <span class="current-value {item['color_class']}">{item['current']:{precision}}</span>
-                <span class="{item['color_class']}" style="font-size: 1.2rem; font-weight: bold; margin-right: 15px;">{item['arrow']} {item['change_pct']:.2f}% (日)</span>
-                <span class="ma-text">短線趨勢：<span class="{item['color_class']}" style="font-weight:bold;">{item['trend_text']}</span></span>
-            </div>
-            <div class="ma-text" style="margin-top: 5px;">5MA: {item['ma5']:{precision}} ｜ 10MA: {item['ma10']:{precision}}</div>
-        </div>
-        """, unsafe_allow_html=True)
-        st.altair_chart(plot_sparkline(history[item['name']], item['color_class']), use_container_width=True)
-
-# --- ETF 專屬資料抓取與多執行緒函數 ---
 def fetch_single_etf(ticker, name):
     try:
         tkr = yf.Ticker(ticker)
@@ -288,32 +266,46 @@ def run_all_etfs_multithread():
             if data: results.append(data)
     return sorted(results, key=lambda x: x["即時殖利率(%)"], reverse=True)
 
-# --- 🚀 JSON 本地快取攔截引擎 ---
-def get_screening_cache(period, interval, pool_id):
-    cache_file = "screening_cache.json"
-    if os.path.exists(cache_file):
-        try:
-            with open(cache_file, "r", encoding="utf-8") as f:
-                cache = json.load(f)
-            if time.time() - cache.get("timestamp", 0) < 10800:
-                if cache.get("period") == period and cache.get("interval") == interval and cache.get("pool_id") == pool_id:
-                    return cache.get("results"), cache.get("timestamp")
-        except: pass
-    return None, None
+# 🚀 升級版帶有 Tooltip 與坐標軸的折線圖
+def plot_sparkline(df, color_class):
+    line_color = '#FF4B4B' if color_class == 'trend-bullish' else '#00C853'
+    if color_class == 'trend-neutral': line_color = '#777'
+    
+    plot_df = df.tail(30).copy()
+    plot_df['DateStr'] = plot_df['Date'].dt.strftime('%m/%d')
+    plot_df['Label'] = plot_df['Close'].round(2).astype(str) + " (" + plot_df['DateStr'] + ")"
+    
+    max_idx, min_idx = plot_df['Close'].idxmax(), plot_df['Close'].idxmin()
+    
+    base_line = alt.Chart(plot_df).mark_line(interpolate='basis', strokeWidth=3).encode(
+        x=alt.X('Date:T', axis=alt.Axis(title='日期', format='%m/%d', labelAngle=-45, grid=False)),
+        y=alt.Y('Close:Q', scale=alt.Scale(zero=False), axis=alt.Axis(title='收盤價', grid=True)),
+        color=alt.value(line_color),
+        tooltip=[alt.Tooltip('DateStr:N', title='日期'), alt.Tooltip('Close:Q', title='收盤價', format='.2f')]
+    )
+    
+    max_text = alt.Chart(plot_df.loc[[max_idx]]).mark_text(align='center', baseline='bottom', dy=-10, color='#555', fontSize=11, fontWeight='bold').encode(x='Date:T', y='Close:Q', text='Label')
+    min_text = alt.Chart(plot_df.loc[[min_idx]]).mark_text(align='center', baseline='top', dy=10, color='#555', fontSize=11, fontWeight='bold').encode(x='Date:T', y='Close:Q', text='Label')
+    
+    return alt.layer(base_line, max_text, min_text).properties(height=200).interactive()
 
-def save_screening_cache(period, interval, pool_id, results):
-    cache_file = "screening_cache.json"
-    cache = {
-        "timestamp": time.time(),
-        "period": period,
-        "interval": interval,
-        "pool_id": pool_id,
-        "results": results
-    }
-    try:
-        with open(cache_file, "w", encoding="utf-8") as f:
-            json.dump(cache, f, ensure_ascii=False)
-    except: pass
+def render_cards(summary, history):
+    for item in summary:
+        precision = ".0f" if "加權" in item['name'] or "櫃買" in item['name'] or "費城" in item['name'] else ".2f"
+        if "DXY" in item['name'] or "VIX" in item['name']: precision = ".1f"
+        st.markdown(f"""
+        <div class="indicator-card">
+            <div class="card-title">{item['name']}</div>
+            <div style="display: flex; align-items: baseline; flex-wrap: wrap;">
+                <span class="current-value {item['color_class']}">{item['current']:{precision}}</span>
+                <span class="{item['color_class']}" style="font-size: 1.2rem; font-weight: bold; margin-right: 15px;">{item['arrow']} {item['change_pct']:.2f}% (日)</span>
+                <span class="ma-text">短線趨勢：<span class="{item['color_class']}" style="font-weight:bold;">{item['trend_text']}</span></span>
+            </div>
+            <div class="ma-text" style="margin-top: 5px;">5MA: {item['ma5']:{precision}} ｜ 10MA: {item['ma10']:{precision}}</div>
+        </div>
+        """, unsafe_allow_html=True)
+        # 移除了隱藏 DataFrame 的 CSS 後，可以直接使用原本封裝好的 plot_sparkline
+        st.altair_chart(plot_sparkline(history[item['name']], item['color_class']), use_container_width=True)
 
 # --- 側邊欄 ---
 st.sidebar.title("📊 儀表板選單")
@@ -405,8 +397,6 @@ elif page == "📂 產業及趨勢主題池":
                     if s not in st.session_state.stock_pool: st.session_state.stock_pool.append(s)
                 st.success(f"匯入成功！請前往「潛力股自動篩選」執行策略。")
 
-# --- 替換從 elif page == "🔍 潛力股自動篩選": 開始，直到下一個 elif 之前的所有內容 ---
-
 elif page == "🔍 潛力股自動篩選":
     st.title("🔍 多維度技術面篩選機 (支援全市場)")
     st.markdown("---")
@@ -431,31 +421,6 @@ elif page == "🔍 潛力股自動篩選":
 
     if st.button("🗑️ 清空清單"): st.session_state.stock_pool = []; st.rerun()
 
-    # 🚀 升級版原生快取運算引擎 (ttl=10800 代表 3 小時)
-    @st.cache_data(ttl=10800, show_spinner=False)
-    def run_screening_engine(pool, p, i):
-        res = {"ma_breakout": [], "vol_up": [], "hammer": []}
-        for ticker_display in pool:
-            try:
-                yf_ticker = ticker_display.split()[0]
-                df = yf.Ticker(yf_ticker).history(period=p, interval=i)
-                if len(df) >= 20:
-                    df['MA5'], df['MA10'], df['MA20'] = df['Close'].rolling(5).mean(), df['Close'].rolling(10).mean(), df['Close'].rolling(20).mean()
-                    curr, prev = df.iloc[-1], df.iloc[-2]
-                    C, O, H, L, V, prev_V = curr['Close'], curr['Open'], curr['High'], curr['Low'], curr['Volume'], prev['Volume']
-                    ma5, ma10, ma20 = curr['MA5'], curr['MA10'], curr['MA20']
-                    
-                    last_3_days = df.tail(3)
-                    low_3d, high_3d, avg_3d = last_3_days['Low'].min(), last_3_days['High'].max(), last_3_days['Close'].mean()
-                    price_info = f"(現價: {C:.2f} | 近3日低: {low_3d:.2f} | 近3日高: {high_3d:.2f} | 3日均: {avg_3d:.2f})"
-                    
-                    if (C > O) and ((min(O, C) - L) > abs(C - O)*2) and ((H - max(O, C)) < abs(C - O)*0.5): res["hammer"].append(f"**{ticker_display}** {price_info}")
-                    if (C > prev['Close']) and (V > prev_V * 1.5): res["vol_up"].append(f"**{ticker_display}** {price_info}")
-                    max_ma, min_ma = max(ma5, ma10, ma20), min(ma5, ma10, ma20)
-                    if (((max_ma - min_ma) / min_ma) < 0.03) and (C > max_ma) and (prev['Close'] < max_ma): res["ma_breakout"].append(f"**{ticker_display}** {price_info}")
-            except: pass
-        return res, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
     if st.button("🚀 啟動演算法篩選", use_container_width=True):
         if not current_pool: 
             st.warning("股票池為空，請輸入代碼或由產業池匯入。")
@@ -465,7 +430,6 @@ elif page == "🔍 潛力股自動篩選":
             st.markdown("### 📊 篩選結果報告")
             
             with st.spinner("正在執行多維度技術面運算... (若三小時內曾執行相同條件，將瞬間載入結果)"):
-                # 直接呼叫快取引擎
                 results, calc_time = run_screening_engine(tuple(current_pool), period, interval)
             
             st.success(f"⚡ 運算完成！本次結果計算基準時間：{calc_time}")
@@ -483,9 +447,6 @@ elif page == "🔍 潛力股自動篩選":
                 for s in results["hammer"]: st.warning(s)
             else: st.write("無符合標的。")
 
-# ==========================================
-# 頁面五：高股息/ETF 即時人氣模組
-# ==========================================
 elif page == "💰 即時 ETF 殖利率與人氣模組":
     st.title("💰 終極版全台 ETF 即時運算引擎")
     st.markdown("系統正運用 **多執行緒 (Multi-threading)** 技術，向 Yahoo Finance 引擎以並發方式閃電抓取您專屬 ETF 庫的「今日現價」、「過去一年配息總額」以及「最新成交量」，並即時算出最精準的年化殖利率！")
