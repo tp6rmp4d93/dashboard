@@ -405,6 +405,8 @@ elif page == "📂 產業及趨勢主題池":
                     if s not in st.session_state.stock_pool: st.session_state.stock_pool.append(s)
                 st.success(f"匯入成功！請前往「潛力股自動篩選」執行策略。")
 
+# --- 替換從 elif page == "🔍 潛力股自動篩選": 開始，直到下一個 elif 之前的所有內容 ---
+
 elif page == "🔍 潛力股自動篩選":
     st.title("🔍 多維度技術面篩選機 (支援全市場)")
     st.markdown("---")
@@ -429,57 +431,45 @@ elif page == "🔍 潛力股自動篩選":
 
     if st.button("🗑️ 清空清單"): st.session_state.stock_pool = []; st.rerun()
 
+    # 🚀 升級版原生快取運算引擎 (ttl=10800 代表 3 小時)
+    @st.cache_data(ttl=10800, show_spinner=False)
+    def run_screening_engine(pool, p, i):
+        res = {"ma_breakout": [], "vol_up": [], "hammer": []}
+        for ticker_display in pool:
+            try:
+                yf_ticker = ticker_display.split()[0]
+                df = yf.Ticker(yf_ticker).history(period=p, interval=i)
+                if len(df) >= 20:
+                    df['MA5'], df['MA10'], df['MA20'] = df['Close'].rolling(5).mean(), df['Close'].rolling(10).mean(), df['Close'].rolling(20).mean()
+                    curr, prev = df.iloc[-1], df.iloc[-2]
+                    C, O, H, L, V, prev_V = curr['Close'], curr['Open'], curr['High'], curr['Low'], curr['Volume'], prev['Volume']
+                    ma5, ma10, ma20 = curr['MA5'], curr['MA10'], curr['MA20']
+                    
+                    last_3_days = df.tail(3)
+                    low_3d, high_3d, avg_3d = last_3_days['Low'].min(), last_3_days['High'].max(), last_3_days['Close'].mean()
+                    price_info = f"(現價: {C:.2f} | 近3日低: {low_3d:.2f} | 近3日高: {high_3d:.2f} | 3日均: {avg_3d:.2f})"
+                    
+                    if (C > O) and ((min(O, C) - L) > abs(C - O)*2) and ((H - max(O, C)) < abs(C - O)*0.5): res["hammer"].append(f"**{ticker_display}** {price_info}")
+                    if (C > prev['Close']) and (V > prev_V * 1.5): res["vol_up"].append(f"**{ticker_display}** {price_info}")
+                    max_ma, min_ma = max(ma5, ma10, ma20), min(ma5, ma10, ma20)
+                    if (((max_ma - min_ma) / min_ma) < 0.03) and (C > max_ma) and (prev['Close'] < max_ma): res["ma_breakout"].append(f"**{ticker_display}** {price_info}")
+            except: pass
+        return res, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
     if st.button("🚀 啟動演算法篩選", use_container_width=True):
         if not current_pool: 
             st.warning("股票池為空，請輸入代碼或由產業池匯入。")
         else:
-            pool_id = hashlib.md5("".join(sorted(current_pool)).encode('utf-8')).hexdigest()
-            cached_results, cache_timestamp = get_screening_cache(period, interval, pool_id)
+            if len(current_pool) > 100: st.warning(f"⚠️ 即將掃描 {len(current_pool)} 檔股票。預計需要數分鐘，請耐心等候。")
             
             st.markdown("### 📊 篩選結果報告")
             
-            if cached_results:
-                cache_dt = datetime.datetime.fromtimestamp(cache_timestamp).strftime('%Y-%m-%d %H:%M:%S')
-                st.success(f"⚡ 已自動讀取暫存結果 (上次計算時間: {cache_dt})，為您省去重複運算時間！")
-                results = cached_results
-            else:
-                if len(current_pool) > 100: st.warning(f"⚠️ 即將掃描 {len(current_pool)} 檔股票。預計需要數分鐘，請耐心等候。")
-                results = {"ma_breakout": [], "vol_up": [], "hammer": []}
-                bar = st.progress(0)
-                status_text = st.empty()
-                
-                for idx, ticker_display in enumerate(current_pool):
-                    status_text.text(f"正在掃描 {ticker_display} ... ({idx+1}/{len(current_pool)})")
-                    try:
-                        yf_ticker = ticker_display.split()[0]
-                        df = yf.Ticker(yf_ticker).history(period=period, interval=interval)
-                        if len(df) >= 20:
-                            df['MA5'] = df['Close'].rolling(5).mean()
-                            df['MA10'] = df['Close'].rolling(10).mean()
-                            df['MA20'] = df['Close'].rolling(20).mean()
-                            
-                            curr, prev = df.iloc[-1], df.iloc[-2]
-                            C, O, H, L, V, prev_V = curr['Close'], curr['Open'], curr['High'], curr['Low'], curr['Volume'], prev['Volume']
-                            ma5, ma10, ma20 = curr['MA5'], curr['MA10'], curr['MA20']
-                            
-                            # 🚀 升級功能：計算前三日 (包含今日) 的高低均價
-                            last_3_days = df.tail(3)
-                            low_3d = last_3_days['Low'].min()
-                            high_3d = last_3_days['High'].max()
-                            avg_3d = last_3_days['Close'].mean()
-                            
-                            price_info = f"(現價: {C:.2f} | 近3日低: {low_3d:.2f} | 近3日高: {high_3d:.2f} | 3日均: {avg_3d:.2f})"
-                            
-                            if (C > O) and ((min(O, C) - L) > abs(C - O)*2) and ((H - max(O, C)) < abs(C - O)*0.5): results["hammer"].append(f"**{ticker_display}** {price_info}")
-                            if (C > prev['Close']) and (V > prev_V * 1.5): results["vol_up"].append(f"**{ticker_display}** {price_info}")
-                            max_ma, min_ma = max(ma5, ma10, ma20), min(ma5, ma10, ma20)
-                            if (((max_ma - min_ma) / min_ma) < 0.03) and (C > max_ma) and (prev['Close'] < max_ma): results["ma_breakout"].append(f"**{ticker_display}** {price_info}")
-                    except: pass
-                    bar.progress((idx + 1) / len(current_pool))
-                    
-                status_text.text("✅ 全面掃描完成！")
-                save_screening_cache(period, interval, pool_id, results)
-                
+            with st.spinner("正在執行多維度技術面運算... (若三小時內曾執行相同條件，將瞬間載入結果)"):
+                # 直接呼叫快取引擎
+                results, calc_time = run_screening_engine(tuple(current_pool), period, interval)
+            
+            st.success(f"⚡ 運算完成！本次結果計算基準時間：{calc_time}")
+            
             st.markdown("#### 🔥 均線糾結且向上突破 (起漲爆發)")
             if results["ma_breakout"]: 
                 for s in results["ma_breakout"]: st.error(f"🚀 {s}")
