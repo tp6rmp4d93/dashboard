@@ -28,62 +28,12 @@ INDUSTRY_STOCKS = {
 FULL_ETF_LIST = {
     '0050.TW': '元大台灣50', '0051.TW': '元大中型100', '0052.TW': '富邦科技', '0053.TW': '元大電子', '0055.TW': '元大MSCI金融', '0056.TW': '元大高股息', '006201.TW': '元大富櫃50', '006203.TW': '元大MSCI台灣', '006204.TW': '永豐臺灣加權', '006208.TW': '富邦台50', '00679B.TW': '元大美債20年', '00687B.TW': '國泰20年美債', '00690.TW': '兆豐藍籌30', '00692.TW': '富邦公司治理', '00694B.TW': '富邦美債1-3', '00695B.TW': '富邦美債7-10', '00696B.TW': '富邦美債20年', '00697B.TW': '元大美債7-10', '00701.TW': '國泰股利精選30', '00702.TW': '國泰標普低波高息', '00710B.TW': '復華彭博非投等債', '00711B.TW': '復華彭博新興債', '00712.TW': '復華富時不動產', '00713.TW': '元大台灣高息低波', '00714.TW': '群益道瓊美國地產', '00717.TW': '富邦美國特別股', '00719B.TW': '元大美債1-3', '00720B.TW': '元大投資級公司債', '00722B.TW': '群益投資級電信債', '00723B.TW': '群益投資級科技債', '00724B.TW': '群益投資級金融債', '00725B.TW': '國泰投資級公司債', '00726B.TW': '國泰新興投等債', '00727B.TW': '國泰優選非投等債', '00728.TW': '第一金工業30', '00730.TW': '富邦臺灣優質高息', '00731.TW': '復華富時高息低波', '00733.TW': '富邦臺灣中小', '00734B.TW': '台新JPM新興債', '00735.TW': '國泰臺韓科技', '00736.TW': '國泰新興市場', '00739.TW': '元大MSCIA股', '00740B.TW': '富邦全球投等債', '00741B.TW': '富邦全球非投等債', '00746B.TW': '富邦A級公司債', '00749B.TW': '凱基新興債10+', '00750B.TW': '凱基科技債10+', '00751B.TW': '元大AAA至A公司', '00754B.TW': '群益AAA-AA公司', '00755B.TW': '群益投資級公用債', '00756B.TW': '群益投等新興公債', '00758B.TW': '復華能源債', '00759B.TW': '復華製藥債', '00760B.TW': '復華新興企業債', '00761B.TW': '國泰A級公司債', '00764B.TW': '群益25年美債', '00768B.TW': '復華20年美債', '00770.TW': '國泰北美科技', '00771.TW': '元大US高息特別', '00772B.TW': '中信高評級公司債', '00773B.TW': '中信優先金融債', '00775B.TW': '新光投等債15+', '00777B.TW': '凱基AAA至A公司', '00778B.TW': '凱基金融債20+', '00779B.TW': '凱基美債25+', '00780B.TW': '國泰A級金融債', '00781B.TW': '國泰A級科技債', '00782B.TW': '國泰A級公用債', '00785B.TW': '富邦金融投等債', '00786B.TW': '元大10年IG銀行', '00787B.TW': '元大10年IG醫療', '00788B.TW': '元大10年IG電能', '00789B.TW': '復華公司債A3', '00791B.TW': '復華信用債1-5', '00792B.TW': '群益A級公司債', '00793B.TW': '群益AAA-A醫療債', '00795B.TW': '中信美國公債20', '00799B.TW': '國泰A級醫療債', '00830.TW': '國泰費城半導體', '00834B.TW': '第一金金融債10+', '00836B.TW': '永豐10年A公司債', '00840B.TW': '凱基IG精選15+', '00841B.TW': '凱基AAA-AA公司', '00842B.TW': '台新美元銀行債', '00844B.TW': '新光15年IG金融', '00845B.TW': '富邦新興投等債', '00846B.TW': '富邦歐洲銀行債', '00847B.TW': '中信美國市政債', '00848B.TW': '中信新興亞洲債', '00849B.TW': '中信EM主權債0-5', '00850.TW': '元大臺灣ESG永續', '00851.TW': '台新全球AI', '00853B.TW': '統一美債10年Aa-', '00856B.TW': '永豐1-3年美公債', '00857B.TW': '永豐20年美公債', '00858.TW': '永豐美國500大', '00859B.TW': '群益0-1年美債', '00860B.TW': '群益1-5Y投資級', '00862B.TW': '中信投資級公司債', '00863B.TW': '中信全球電信債', '00864B.TW': '中信美國公債0-1', '00867B.TW': '新光A-BBB電信債', '00870B.TW': '元大15年EM主權', '00878.TW': '國泰永續高股息', '00881.TW': '國泰台灣科技龍頭', '00882.TW': '中信中國高股息', '00883B.TW': '中信ESG投資級債', '00884B.TW': '中信低碳新興債', '00888.TW': '永豐台灣ESG', '00890B.TW': '凱基ESGBBB債15', '00891.TW': '中信關鍵半導體', '00892.TW': '富邦台灣半導體', '00894.TW': '中信小資高價30', '00896.TW': '中信綠能及電動車', '00900.TW': '富邦特選高股息3', '00901.TW': '永豐智能車供應鏈', '00904.TW': '新光臺灣半導體3', '00905.TW': 'FT臺灣Smart', '00907.TW': '永豐優息存股', '00908.TW': '富邦入息REITs+', '00909.TW': '國泰數位支付服務', '00911.TW': '兆豐洲際半導體', '00912.TW': '中信臺灣智慧50', '00913.TW': '兆豐台灣晶圓製造', '00915.TW': '凱基優選高股息3', '00916.TW': '國泰全球品牌50', '00917.TW': '中信特選金融', '00918.TW': '大華優利高填息3', '00919.TW': '群益台灣精選高息', '00920.TW': '富邦ESG綠色電力', '00921.TW': '兆豐龍頭等權重', '00922.TW': '國泰台灣領袖50', '00923.TW': '群益台ESG低碳50', '00926.TW': '凱基全球菁英55', '00927.TW': '群益半導體收益', '00928.TW': '中信上櫃ESG30', '00929.TW': '復華台灣科技優息', '00930.TW': '永豐ESG低碳高息', '00931B.TW': '統一美債20年', '00932.TW': '兆豐永續高息等權', '00933B.TW': '國泰10Y+金融債', '00934.TW': '中信成長高股息', '00935.TW': '野村臺灣新科技5', '00936.TW': '台新永續高息中小', '00937B.TW': '群益ESG投等債20', '00938.TW': '凱基優選30', '00939.TW': '統一台灣高息動能', '00940.TW': '元大台灣價值高息', '00942B.TW': '台新美A公司債20', '00943.TW': '兆豐電子高息等權', '00944.TW': '野村趨勢動能高息', '00945B.TW': '凱基美國非投等債', '00946.TW': '群益科技高息成長', '00947.TW': '台新臺灣IC設計', '00948B.TW': '中信優息投資級債', '00950B.TW': '凱基A級公司債', '00951.TW': '台新日本半導體', '00952.TW': '凱基台灣AI50', '00953B.TW': '群益優選非投等債', '00956.TW': '中信日經高股息', '00957B.TW': '兆豐US優選投等', '00958B.TW': '永豐ESG銀行債15', '00959B.TW': '大華投等美債15Y', '00960.TW': '野村全球航運龍頭', '00961.TW': 'FT臺灣永續高息', '00962.TW': '台新AI優息動能', '00963.TW': '中信全球高股息', '00964.TW': '中信亞太高股息', '00966B.TW': '統一ESG投等債15', '00967B.TW': '元大優息美債', '00968B.TW': '元大優息投等債', '00970B.TW': '新光BBB投等債20', '00971.TW': '野村美國研發龍頭', '00972.TW': '野村日本動能高息', '009802.TW': '富邦旗艦50', '009803.TW': '保德信市值動能5', '009804.TW': '聯邦台精彩50', '009808.TW': '華南永昌優選50', '00980A.TW': '主動野村臺灣優選', '00980B.TW': '台新特選IG債10+', '00980D.TW': '主動聯博投等入息', '00981B.TW': '第一金優選非投債', '00981D.TW': '主動中信非投等債', '00982A.TW': '主動群益台灣強棒', '00982B.TW': 'FT投資級債20+', '00984A.TW': '主動安聯台灣高息', '00985B.TW': '群益ESG投等債0-'}
 
-# --- 初始化暫存狀態 ---
-if 'custom_tickers' not in st.session_state: st.session_state.custom_tickers = []
-if 'stock_pool' not in st.session_state: st.session_state.stock_pool = ["2330.TW 台積電", "2317.TW 鴻海", "2454.TW 聯發科", "2881.TW 富邦金", "2603.TW 長榮"]
-
-# --- 自定義 CSS ---
-st.markdown("""
-    <style>
-    html, body, [class*="css"] { font-size: 18px; }
-    .stTitle { font-size: 2.5rem !important; font-weight: bold; }
-    .stMarkdown p { font-size: 1.1rem; line-height: 1.6; }
-    .indicator-card { background-color: #f0f2f6; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #ddd; }
-    .card-title { font-size: 1.3rem; color: #555; font-weight: bold; margin-bottom: 10px; }
-    .current-value { font-size: 3rem !important; font-weight: bold; margin-right: 10px; }
-    .ma-text { font-size: 1rem; color: #666; }
-    .trend-bullish { color: #FF4B4B !important; }
-    .trend-bearish { color: #00C853 !important; }
-    .trend-neutral { color: #777 !important; }
-    [data-testid="stDataFrame"] { display: none; }
-    .show-df [data-testid="stDataFrame"] { display: block !important; }
-    </style>
-""", unsafe_allow_html=True)
-
-# --- 側邊欄 ---
-st.sidebar.title("📊 儀表板選單")
-page = st.sidebar.radio("請選擇模組：", [
-    "🇹🇼 台灣市場 (台股)", 
-    "🌐 全球市場 (總經)", 
-    "📂 產業股票池", 
-    "🔍 潛力股自動篩選",
-    "💰 即時 ETF 殖利率與人氣模組"
-])
-
-st.sidebar.markdown("---")
-st.sidebar.subheader("➕ 自訂觀察標的")
-new_ticker = st.sidebar.text_input("輸入代碼 (例：2317.TW 鴻海):", key="ticker_input").strip().upper()
-if st.sidebar.button("加入標的"):
-    if new_ticker and new_ticker not in st.session_state.custom_tickers:
-        st.session_state.custom_tickers.append(new_ticker)
-        if new_ticker not in st.session_state.stock_pool: st.session_state.stock_pool.append(new_ticker)
-        st.rerun()
-
-if st.session_state.custom_tickers:
-    st.sidebar.write("📌 目前觀察名單：")
-    for ticker in st.session_state.custom_tickers:
-        col1, col2 = st.sidebar.columns([3, 1])
-        col1.markdown(f"**{ticker}**")
-        if col2.button("刪除", key=f"del_{ticker}"):
-            st.session_state.custom_tickers.remove(ticker)
-            if ticker in st.session_state.stock_pool: st.session_state.stock_pool.remove(ticker)
-            st.rerun()
-
 # ==========================================
-# 核心資料抓取與 API 函數 (移至全域範圍，避免快取錯誤)
+# 核心資料抓取與 API 函數 (宣告於全域)
 # ==========================================
 @st.cache_data(ttl=86400)
 def fetch_all_twse_tickers():
+    """獲取台股全市場代碼及名稱"""
     try:
         url = "https://api.finmindtrade.com/api/v4/data?dataset=TaiwanStockInfo"
         res = requests.get(url, timeout=10, verify=False)
@@ -214,7 +164,6 @@ def render_cards(summary, history):
         """, unsafe_allow_html=True)
         st.altair_chart(plot_sparkline(history[item['name']], item['color_class']), use_container_width=True)
 
-# --- 🚀 ETF 專屬資料抓取與多執行緒函數 (全域宣告) ---
 def fetch_single_etf(ticker, name):
     try:
         tkr = yf.Ticker(ticker)
@@ -254,13 +203,88 @@ def fetch_single_etf(ticker, name):
 @st.cache_data(ttl=1800, show_spinner=False)
 def run_all_etfs_multithread():
     results = []
-    # 限制 8 條執行緒，避免被 Yahoo 阻擋
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
         future_to_etf = {executor.submit(fetch_single_etf, t, n): (t, n) for t, n in FULL_ETF_LIST.items()}
         for future in concurrent.futures.as_completed(future_to_etf):
             data = future.result()
             if data: results.append(data)
     return sorted(results, key=lambda x: x["即時殖利率(%)"], reverse=True)
+
+
+# --- 初始化暫存狀態 ---
+if 'custom_tickers' not in st.session_state: st.session_state.custom_tickers = []
+if 'stock_pool' not in st.session_state: st.session_state.stock_pool = ["2330.TW 台積電", "2317.TW 鴻海", "2454.TW 聯發科", "2881.TW 富邦金", "2603.TW 長榮"]
+
+# --- 自定義 CSS ---
+st.markdown("""
+    <style>
+    html, body, [class*="css"] { font-size: 18px; }
+    .stTitle { font-size: 2.5rem !important; font-weight: bold; }
+    .stMarkdown p { font-size: 1.1rem; line-height: 1.6; }
+    .indicator-card { background-color: #f0f2f6; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #ddd; }
+    .card-title { font-size: 1.3rem; color: #555; font-weight: bold; margin-bottom: 10px; }
+    .current-value { font-size: 3rem !important; font-weight: bold; margin-right: 10px; }
+    .ma-text { font-size: 1rem; color: #666; }
+    .trend-bullish { color: #FF4B4B !important; }
+    .trend-bearish { color: #00C853 !important; }
+    .trend-neutral { color: #777 !important; }
+    [data-testid="stDataFrame"] { display: none; }
+    .show-df [data-testid="stDataFrame"] { display: block !important; }
+    </style>
+""", unsafe_allow_html=True)
+
+# --- 側邊欄 ---
+st.sidebar.title("📊 儀表板選單")
+page = st.sidebar.radio("請選擇模組：", [
+    "🇹🇼 台灣市場 (台股)", 
+    "🌐 全球市場 (總經)", 
+    "📂 產業股票池", 
+    "🔍 潛力股自動篩選",
+    "💰 即時 ETF 殖利率與人氣模組"
+])
+
+st.sidebar.markdown("---")
+st.sidebar.subheader("➕ 自訂觀察標的")
+st.sidebar.caption("輸入代碼 (例：純數字 2317，或 NVDA)：")
+new_ticker = st.sidebar.text_input("輸入台股/美股代碼:", key="ticker_input").strip().upper()
+
+if st.sidebar.button("加入標的"):
+    if new_ticker:
+        search_str = f"{new_ticker}.TW" if new_ticker.isdigit() else new_ticker
+        
+        # 智慧聯想：尋找全市場或 ETF 庫中的完整名稱
+        found_full_name = new_ticker
+        all_twse = fetch_all_twse_tickers()
+        
+        for t in all_twse:
+            if t.startswith(search_str):
+                found_full_name = t
+                break
+                
+        if found_full_name == new_ticker:
+            for t_code, t_name in FULL_ETF_LIST.items():
+                if t_code.startswith(search_str):
+                    found_full_name = f"{t_code} {t_name}"
+                    break
+                    
+        if found_full_name == new_ticker and new_ticker.isdigit():
+            found_full_name = f"{new_ticker}.TW"
+            
+        if found_full_name not in st.session_state.custom_tickers:
+            st.session_state.custom_tickers.append(found_full_name)
+            if found_full_name not in st.session_state.stock_pool: 
+                st.session_state.stock_pool.append(found_full_name)
+            st.rerun()
+
+if st.session_state.custom_tickers:
+    st.sidebar.write("📌 目前觀察名單：")
+    for ticker in st.session_state.custom_tickers:
+        col1, col2 = st.sidebar.columns([3, 1])
+        col1.markdown(f"**{ticker}**")
+        if col2.button("刪除", key=f"del_{ticker}"):
+            st.session_state.custom_tickers.remove(ticker)
+            if ticker in st.session_state.stock_pool: st.session_state.stock_pool.remove(ticker)
+            st.rerun()
 
 
 # ==========================================
@@ -368,7 +392,7 @@ elif page == "🔍 潛力股自動篩選":
 # ==========================================
 # 頁面五：高股息/ETF 即時人氣模組
 # ==========================================
-elif page == "💰 即時 ETF 殖利率與人氣模組":
+elif page == "💰 ETF 殖利率與成交量":
     st.markdown("<div class='show-df'>", unsafe_allow_html=True)
     st.title("💰 台股 ETF 即時運算引擎")
     st.markdown("系統正運用 **多執行緒 (Multi-threading)** 技術，向 Yahoo Finance 引擎以並發方式閃電抓取全台灣 熱門 ETF 的「今日現價」、「過去一年配息總額」以及「最新成交量」，並即時算出最精準的年化殖利率！")
@@ -381,7 +405,6 @@ elif page == "💰 即時 ETF 殖利率與人氣模組":
     if etf_data:
         df_etf = pd.DataFrame(etf_data)
         
-        # 建立上方篩選器
         col1, col2 = st.columns(2)
         with col1: type_filter = st.selectbox("篩選 ETF 類型：", ["全部顯示", "高股息", "市值/主題型", "債券型", "主動型"])
         with col2: st.metric(label="成功載入檔數", value=len(df_etf))
@@ -418,12 +441,10 @@ elif page == "💰 即時 ETF 殖利率與人氣模組":
     else:
         st.error("暫時無法取得 ETF 即時資料，請稍後重試。")
         
-    st.markdown("---")
-    st.caption("註：年化殖利率採計過去 365 天內該檔 ETF 實際發放的除息總和，除以 Yahoo Finance 即時現價而得。新上市未滿一年或近期未配息之 ETF，數值可能為 0。")
     st.markdown("</div>", unsafe_allow_html=True)
 
 # ==========================================
-# 底部共用區塊
+# 底部共用區塊 (自訂名單 + 數據更新時間 + ETF操作提示)
 # ==========================================
 if page in ["🇹🇼 台灣市場 (台股)", "🌐 全球市場 (總經)"] and st.session_state.custom_tickers:
     st.markdown("---")
@@ -433,5 +454,15 @@ if page in ["🇹🇼 台灣市場 (台股)", "🌐 全球市場 (總經)"] and 
     if c_summary: render_cards(c_summary, c_history)
 
 st.markdown("---")
-st.caption(f"數據最後更新: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-st.caption("免責聲明：本儀表板技術與配息數據均由 Yahoo Finance 提供，不構成任何投資建議。")
+
+# 轉換為台灣時間 (UTC+8)
+tw_tz = datetime.timezone(datetime.timedelta(hours=8))
+current_time = datetime.datetime.now(tw_tz).strftime('%Y-%m-%d %H:%M:%S')
+st.caption(f"📅 數據最後更新 (台灣當地時間): {current_time}")
+
+# ETF 操作提示與附註，獨立顯示在頁尾
+if page == "💰 即時 ETF 殖利率與人氣模組":
+    st.caption("💡 **ETF 操作提示**：選擇高股息 ETF 時，除了看『年化配息率』，更重要的是看『今日成交量』與『五日均量』，成交量的爆發才是最準確的人氣溫度計！")
+    st.caption("註：年化殖利率採計過去 365 天內該檔 ETF 實際發放的除息總和，除以 Yahoo Finance 即時現價而得。新上市未滿一年或近期未配息之 ETF，數值可能為 0。")
+
+st.caption("免責聲明：技術分析與數據計算結果僅供參考，不構成任何投資建議。全市場資料由 FinMind 介接，報價由 Yahoo Finance 提供。")
