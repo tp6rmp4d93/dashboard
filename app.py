@@ -4,6 +4,8 @@ import pandas as pd
 import altair as alt
 import datetime
 import requests
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # --- 網頁設定 ---
 st.set_page_config(page_title="專業市場儀表板", layout="wide", initial_sidebar_state="expanded")
@@ -48,28 +50,51 @@ if st.session_state.custom_tickers:
             st.rerun()
 
 # --- 資料抓取與API模組 ---
-@st.cache_data(ttl=86400) # 快取一天，避免重複請求證交所
+@st.cache_data(ttl=86400) # 快取一天
 def fetch_all_twse_tickers():
     """介接證交所 OpenAPI，取得所有上市股票代碼"""
     try:
-        # 💡 秘訣 1：加上 Headers 偽裝成正常的 Chrome 瀏覽器
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         }
-        # 💡 秘訣 2：改用 OpenAPI 專屬網址，對程式抓取更友善
         url = "https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL"
         
-        res = requests.get(url, headers=headers, timeout=10)
-        res.raise_for_status() # 如果伺服器回報錯誤，這行會捕捉到
+        # 💡 終極秘訣：加入 verify=False 強制略過龜毛的 SSL 驗證
+        res = requests.get(url, headers=headers, timeout=10, verify=False)
+        res.raise_for_status() 
         data = res.json()
         
-        # 篩選出 4 碼數字的標準上市股票，並加上 .TW
         tickers = [f"{item['Code']}.TW" for item in data if len(item['Code']) == 4 and item['Code'].isdigit()]
         return tickers
     except Exception as e:
-        # 將錯誤訊息印在網頁上，方便我們知道是被擋還是超時
         st.error(f"連線失敗，詳細錯誤原因：{e}") 
         return []
+
+@st.cache_data(ttl=1800) # 30分鐘更新一次
+def fetch_twse_institutional():
+    try:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
+        url = "https://openapi.twse.com.tw/v1/fund/BFI82U"
+        
+        # 💡 籌碼面同樣加入 verify=False
+        res = requests.get(url, headers=headers, timeout=5, verify=False)
+        data = res.json()
+        
+        inst_data = {"外資": 0.0, "投信": 0.0, "自營商": 0.0}
+        for item in data:
+            name = item.get("type", "")
+            net_val = float(item.get("buy_sell", "0").replace(",", "")) / 100000000
+            
+            if "外資及陸資" in name and "不含外資自營商" in name: inst_data["外資"] = net_val
+            elif "投信" in name: inst_data["投信"] = net_val
+            elif "自營商" in name: inst_data["自營商"] += net_val
+                
+        inst_data["合計"] = inst_data["外資"] + inst_data["投信"] + inst_data["自營商"]
+        return inst_data
+    except Exception as e:
+        return None
 
 @st.cache_data(ttl=1800) # 30分鐘更新一次
 def fetch_twse_institutional():
