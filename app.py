@@ -307,8 +307,8 @@ elif page == "🔍 潛力股自動篩選":
 # ==========================================
 elif page == "💰 即時 ETF 殖利率與人氣模組":
     st.markdown("<div class='show-df'>", unsafe_allow_html=True)
-    st.title("💰 終極版 187 檔台股 ETF 即時運算引擎")
-    st.markdown("系統正運用 **多執行緒 (Multi-threading)** 技術，向 Yahoo Finance 引擎以每秒並發的方式，閃電抓取全台灣 187 檔熱門 ETF 的「今日現價」、「過去一年配息總額」以及「最新成交量」，並即時算出最精準的年化殖利率！")
+    st.title("💰 終極版 100 檔台股 ETF 即時運算引擎")
+    st.markdown("系統正運用 **多執行緒 (Multi-threading)** 技術，向 Yahoo Finance 引擎以每秒並發的方式，閃電抓取全台灣 100 檔熱門 ETF 的「今日現價」、「過去一年配息總額」以及「最新成交量」，並即時算出最精準的年化殖利率！")
     st.info("💡 **操作提示**：點擊表格上方的標題（例如：`即時殖利率(%)` 或 `今日成交量(張)`），系統就會自動幫您由高到低排序！")
     st.markdown("---")
     
