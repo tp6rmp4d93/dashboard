@@ -276,11 +276,25 @@ elif page == "🔍 潛力股自動篩選":
                 bar.progress((idx + 1) / len(current_pool))
                 
             st.markdown("#### 🔥 均線糾結且向上突破 (起漲爆發)")
-            [st.error(f"🚀 {s}") for s in results["ma_breakout"]] if results["ma_breakout"] else st.write("無符合標的。")
+            if results["ma_breakout"]:
+                for s in results["ma_breakout"]:
+                    st.error(f"🚀 {s}")
+            else:
+                st.write("無符合標的。")
+                
             st.markdown("#### 📈 價漲量增 (資金湧入)")
-            [st.success(s) for s in results["vol_up"]] if results["vol_up"] else st.write("無符合標的。")
+            if results["vol_up"]:
+                for s in results["vol_up"]:
+                    st.success(s)
+            else:
+                st.write("無符合標的。")
+                
             st.markdown("#### 🔨 陽線錘子 (底部支撐)")
-            [st.warning(s) for s in results["hammer"]] if results["hammer"] else st.write("無符合標的。")
+            if results["hammer"]:
+                for s in results["hammer"]:
+                    st.warning(s)
+            else:
+                st.write("無符合標的。")
 
 st.markdown("---")
 st.caption("免責聲明：籌碼資料來源為證交所 Open API，報價由 Yahoo Finance 提供。所有動態生成之評析與篩選結果僅為數據客觀呈現，不構成任何投資建議。")
