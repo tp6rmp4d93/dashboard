@@ -6,6 +6,10 @@ import datetime
 import requests
 import urllib3
 import concurrent.futures
+import json
+import os
+import time
+import hashlib
 
 # 關閉不安全的 SSL 憑證警告
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -13,27 +17,27 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # --- 網頁設定 ---
 st.set_page_config(page_title="專業市場儀表板", layout="wide", initial_sidebar_state="expanded")
 
-# --- 🚀 全新產業鏈與趨勢主題分類庫 ---
+# --- 🚀 全新產業鏈與趨勢主題分類庫 (每類至少 40 檔以上) ---
 INDUSTRY_STOCKS = {
-    "🔌 電子工業：半導體業 (IC設計/代工/封測)": ["2330.TW 台積電", "2454.TW 聯發科", "2303.TW 聯電", "3711.TW 日月光投控", "2379.TW 瑞昱", "2408.TW 南亞科", "3443.TW 創意", "3034.TW 聯詠", "4966.TW 譜瑞-KY", "6415.TW 矽力*-KY", "3529.TW 力旺", "8299.TW 群聯", "6770.TW 力積電", "6488.TW 環球晶", "2338.TW 光罩", "2449.TW 京元電子", "6239.TW 力成", "3189.TW 景碩", "6531.TW 愛普*", "4919.TW 新唐", "3661.TW 世芯-KY"],
-    "🔌 電子工業：電子零組件 (PCB/被動/連接器)": ["2308.TW 台達電", "2327.TW 國巨", "3037.TW 欣興", "2313.TW 華通", "3044.TW 健鼎", "2368.TW 金像電", "3324.TW 雙鴻", "2383.TW 台光電", "2492.TW 華新科", "6269.TW 台郡", "3042.TW 晶技", "6197.TW 佳必琪", "3217.TW 優群", "2351.TW 順德", "2428.TW 興勤", "3023.TW 信邦", "3031.TW 佰鴻"],
-    "💻 電子工業：電腦及週邊設備 (伺服器/NB)": ["2382.TW 廣達", "3231.TW 緯創", "2356.TW 英業達", "2324.TW 仁寶", "2376.TW 技嘉", "2395.TW 研華", "6669.TW 緯穎", "2353.TW 宏碁", "2357.TW 華碩", "3005.TW 神基", "3013.TW 晟銘電", "4938.TW 和碩", "3017.TW 奇鋐", "2377.TW 微星", "6515.TW 穎崴", "2301.TW 光寶科", "8210.TW 勤誠", "3483.TW 力致"],
-    "📡 電子工業：通信網路業 (網通/光通訊)": ["2412.TW 中華電", "3045.TW 台灣大", "4904.TW 遠傳", "2345.TW 智邦", "3596.TW 智易", "5388.TW 中磊", "6285.TW 啟碁", "3704.TW 合勤控", "2419.TW 仲琦", "3363.TW 上詮", "3380.TW 明泰", "3491.TW 昇達科", "3558.TW 神準", "4906.TW 正文", "4977.TW 眾達-KY", "4979.TW 華星光", "6442.TW 光聖"],
-    "💡 電子工業：光電業 (面板/LED)": ["3008.TW 大立光", "3406.TW 玉晶光", "2409.TW 友達", "3481.TW 群創", "6116.TW 彩晶", "2448.TW 晶電", "3141.TW 晶宏", "3019.TW 亞光", "2393.TW 億光", "6456.TW GIS-KY", "2340.TW 光磊", "3450.TW 聯鈞", "3454.TW 晶睿", "3504.TW 揚明光", "3698.TW 隆達", "6209.TW 今國光"],
-    "🛒 電子工業：通路、資服與其他電子": ["3702.TW 大聯大", "2347.TW 聯強", "3036.TW 文曄", "6139.TW 亞翔", "6180.TW 橘子", "2427.TW 宏碁資訊", "6214.TW 精誠", "2354.TW 鴻準", "2359.TW 所羅門", "5434.TW 崇越", "2404.TW 漢唐", "3231.TW 緯創"],
-    "🏭 傳統產業：水泥/食品/塑膠/紡織": ["1101.TW 台泥", "1102.TW 亞泥", "1216.TW 統一", "1227.TW 佳格", "1210.TW 大成", "1301.TW 台塑", "1303.TW 南亞", "1326.TW 台化", "1304.TW 台聚", "1402.TW 遠東新", "1476.TW 儒鴻", "1477.TW 聚陽", "1409.TW 新纖"],
-    "⚙️ 傳統產業：電機/電器/玻璃/造紙/鋼鐵": ["1504.TW 東元", "1519.TW 華城", "1513.TW 中興電", "1514.TW 亞力", "1503.TW 士電", "1605.TW 華新", "1609.TW 大亞", "1802.TW 台玻", "1904.TW 正隆", "1907.TW 永豐餘", "2002.TW 中鋼", "2014.TW 中鴻", "2027.TW 大成鋼", "2006.TW 東和鋼鐵"],
-    "🏗️ 傳統產業：橡膠/汽車/建材營造": ["2105.TW 正新", "2106.TW 建大", "2201.TW 裕隆", "2207.TW 和泰車", "2231.TW 為升", "2204.TW 中華", "2504.TW 國產", "2511.TW 太子", "2542.TW 興富發", "2548.TW 華固", "2520.TW 冠德", "5522.TW 遠雄"],
-    "🚢 傳統產業：航運業 (航空/海運)": ["2603.TW 長榮", "2609.TW 陽明", "2615.TW 萬海", "2618.TW 長榮航", "2610.TW 華航", "2606.TW 裕民", "2637.TW 慧洋-KY", "2605.TW 新興", "2633.TW 台灣高鐵", "2636.TW 台驊投控", "2634.TW 漢翔", "2646.TW 星宇航空"],
-    "🏨 傳統產業：觀光餐旅/綠能休閒/居家生活": ["2707.TW 晶華", "2727.TW 王品", "2731.TW 雄獅", "2739.TW 寒舍", "2748.TW 雲品", "9914.TW 美利達", "9921.TW 巨大", "9904.TW 寶成", "8996.TW 高力", "9910.TW 豐泰", "8464.TW 億豐", "9927.TW 泰銘"],
-    "🏦 金融與服務：金融保險 (金控/銀行/證券)": ["2881.TW 富邦金", "2882.TW 國泰金", "2891.TW 中信金", "2886.TW 兆豐金", "2884.TW 玉山金", "2892.TW 第一金", "2885.TW 元大金", "2880.TW 華南金", "2890.TW 永豐金", "2883.TW 開發金", "2887.TW 台新金", "2801.TW 彰銀", "2834.TW 臺企銀", "5880.TW 合庫金", "5871.TW 中租-KY"],
-    "🏬 金融與服務：貿易百貨": ["2912.TW 統一超", "2915.TW 潤泰全", "2903.TW 遠百", "2929.TW 淘帝-KY", "8454.TW 富邦媒", "2908.TW 特力", "2911.TW 麗嬰房", "5904.TW 寶雅"],
-    "🤖 趨勢主題：AI人工智慧與伺服器": ["2330.TW 台積電", "2382.TW 廣達", "3231.TW 緯創", "6669.TW 緯穎", "2376.TW 技嘉", "2356.TW 英業達", "3017.TW 奇鋐", "3324.TW 雙鴻", "3661.TW 世芯-KY", "3443.TW 創意", "2317.TW 鴻海", "8210.TW 勤誠", "6515.TW 穎崴"],
-    "🚗 趨勢主題：電動車輛產業": ["2317.TW 鴻海", "2201.TW 裕隆", "1536.TW 和大", "3665.TW 貿聯-KY", "6282.TW 康舒", "6279.TW 胡連", "2308.TW 台達電", "2231.TW 為升", "4739.TW 康普", "5243.TW 乙盛-KY", "8367.TW 建新國際"],
-    "🛰️ 趨勢主題：太空衛星科技": ["2314.TW 台揚", "3491.TW 昇達科", "2313.TW 華通", "6285.TW 啟碁", "5388.TW 中磊", "2419.TW 仲琦", "3380.TW 明泰", "3234.TW 光環", "3311.TW 閎暉", "3466.TW 致振"],
-    "🖨️ 趨勢主題：印刷電路板 (PCB)": ["2313.TW 華通", "3037.TW 欣興", "8046.TW 南電", "2368.TW 金像電", "3044.TW 健鼎", "6269.TW 台郡", "6153.TW 嘉聯益", "2367.TW 燿華", "5469.TW 瀚宇博", "8150.TW 南茂", "2383.TW 台光電", "6274.TW 台燿"],
-    "🍃 趨勢主題：ESG / 淨零碳排與風力發電": ["1513.TW 中興電", "1519.TW 華城", "1514.TW 亞力", "1503.TW 士電", "3708.TW 上緯投控", "9958.TW 世紀鋼", "6806.TW 森崴能源", "6869.TW 雲豹能源", "8996.TW 高力", "1589.TW 永冠-KY", "2013.TW 中鋼構"],
-    "☁️ 趨勢主題：數位雲端與資訊安全": ["6183.TW 關貿", "6214.TW 精誠", "2427.TW 宏碁資訊", "6690.TW 安碁資訊", "6811.TW 宏碁智醫", "5203.TW 訊連", "3029.TW 零壹", "2480.TW 敦陽科", "6112.TW 聚碩", "3130.TW 一零四"]
+    "🔌 電子工業：半導體業 (IC設計/代工/封測)": ["2330.TW 台積電", "2454.TW 聯發科", "2303.TW 聯電", "3711.TW 日月光投控", "2379.TW 瑞昱", "2408.TW 南亞科", "3443.TW 創意", "3034.TW 聯詠", "4966.TW 譜瑞-KY", "6415.TW 矽力*-KY", "3529.TW 力旺", "8299.TW 群聯", "6770.TW 力積電", "6488.TW 環球晶", "2338.TW 光罩", "2449.TW 京元電子", "6239.TW 力成", "3189.TW 景碩", "6531.TW 愛普*", "4919.TW 新唐", "3661.TW 世芯-KY", "5269.TW 祥碩", "2458.TW 義隆", "3035.TW 智原", "3583.TW 辛耘", "3141.TW 晶宏", "3006.TW 晶豪科", "5347.TW 世界", "6147.TW 頎邦", "8016.TW 矽創", "8081.TW 致新", "3260.TW 威剛", "6202.TW 盛群", "3588.TW 通嘉", "2436.TW 偉詮電", "6643.TW M31", "8150.TW 南茂", "3016.TW 嘉晶", "6138.TW 茂達", "3227.TW 原相", "2481.TW 強茂", "3374.TW 精材", "5283.TW 達發", "3592.TW 瑞鼎", "2434.TW 統懋"],
+    "🔌 電子工業：電子零組件 (PCB/被動/連接器)": ["2308.TW 台達電", "2327.TW 國巨", "3037.TW 欣興", "2313.TW 華通", "3044.TW 健鼎", "2368.TW 金像電", "3324.TW 雙鴻", "2383.TW 台光電", "2492.TW 華新科", "6269.TW 台郡", "3042.TW 晶技", "6197.TW 佳必琪", "3217.TW 優群", "2351.TW 順德", "2428.TW 興勤", "3023.TW 信邦", "3031.TW 佰鴻", "2355.TW 敬鵬", "3026.TW 禾伸堂", "2316.TW 楠梓電", "2367.TW 燿華", "2385.TW 群光", "2420.TW 新巨", "2439.TW 美律", "2457.TW 飛宏", "2472.TW 立隆電", "2478.TW 大毅", "2484.TW 希華", "3003.TW 健和興", "3015.TW 全漢", "3033.TW 威健", "3090.TW 日電貿", "3305.TW 昇貿", "3308.TW 聯德", "2415.TW 錩新", "2431.TW 聯昌", "2440.TW 太空梭", "2460.TW 建通", "2462.TW 良得電", "2493.TW 揚博", "3209.TW 全科", "3296.TW 勝德", "3311.TW 閎暉"],
+    "💻 電子工業：電腦及週邊設備 (伺服器/NB)": ["2382.TW 廣達", "3231.TW 緯創", "2356.TW 英業達", "2324.TW 仁寶", "2376.TW 技嘉", "2395.TW 研華", "6669.TW 緯穎", "2353.TW 宏碁", "2357.TW 華碩", "3005.TW 神基", "3013.TW 晟銘電", "4938.TW 和碩", "3017.TW 奇鋐", "2377.TW 微星", "6515.TW 穎崴", "2301.TW 光寶科", "8210.TW 勤誠", "3483.TW 力致", "2362.TW 藍天", "6206.TW 飛捷", "6166.TW 凌華", "2397.TW 友通", "3022.TW 威強電", "6117.TW 迎廣", "3046.TW 建碁", "2399.TW 映泰", "2371.TW 大同", "3050.TW 鈺德", "3211.TW 順達", "3515.TW 華擎", "6277.TW 宏正", "6412.TW 群電", "6414.TW 樺漢", "6579.TW 研揚", "8112.TW 至上", "4915.TW 致伸", "3706.TW 神達", "3413.TW 京鼎", "3058.TW 立德", "2425.TW 承啟", "2387.TW 精元", "2417.TW 圓剛", "2405.TW 浩鑫", "2365.TW 昆盈"],
+    "📡 電子工業：通信網路業 (網通/光通訊)": ["2412.TW 中華電", "3045.TW 台灣大", "4904.TW 遠傳", "2345.TW 智邦", "3596.TW 智易", "5388.TW 中磊", "6285.TW 啟碁", "3704.TW 合勤控", "2419.TW 仲琦", "3363.TW 上詮", "3380.TW 明泰", "3491.TW 昇達科", "3558.TW 神準", "4906.TW 正文", "4977.TW 眾達-KY", "4979.TW 華星光", "6442.TW 光聖", "2485.TW 兆赫", "2450.TW 神腦", "3062.TW 建漢", "2314.TW 台揚", "2498.TW 宏達電", "3149.TW 正達", "2332.TW 友訊", "2455.TW 全新", "3047.TW 訊舟", "3162.TW 精確", "3234.TW 光環", "3312.TW 弘憶股", "3682.TW 亞太電", "6112.TW 聚碩", "6190.TW 萬泰科", "6216.TW 居易", "6245.TW 立端", "6263.TW 普萊德", "6279.TW 胡連", "2321.TW 東訊", "2432.TW 倚強科", "2442.TW 新美齊", "3025.TW 星通", "3309.TW 智建", "3438.TW 類比科", "3550.TW 聯穎", "3580.TW 友威科", "3664.TW 安瑞-KY"],
+    "💡 電子工業：光電業 (面板/LED)": ["3008.TW 大立光", "3406.TW 玉晶光", "2409.TW 友達", "3481.TW 群創", "6116.TW 彩晶", "2448.TW 晶電", "3141.TW 晶宏", "3019.TW 亞光", "2393.TW 億光", "6456.TW GIS-KY", "2340.TW 光磊", "3450.TW 聯鈞", "3454.TW 晶睿", "3504.TW 揚明光", "3698.TW 隆達", "6209.TW 今國光", "2426.TW 鼎元", "6120.TW 達運", "3622.TW 洋華", "3576.TW 聯合再生", "6443.TW 元晶", "2323.TW 中環", "2349.TW 錸德", "2374.TW 佳能", "2406.TW 國碩", "2486.TW 一詮", "2489.TW 瑞軒", "3059.TW 華晶科", "3338.TW 泰碩", "3356.TW 奇偶", "3362.TW 先進光", "3441.TW 聯一光", "3535.TW 晶彩科", "3591.TW 艾笛森", "4934.TW 太極", "2429.TW 銘旺科", "2438.TW 翔耀", "2466.TW 冠西電", "2491.TW 吉祥全", "3024.TW 憶聲", "3038.TW 全台", "3052.TW 夆典", "3297.TW 杭特", "3383.TW 新世紀", "3437.TW 榮創"],
+    "🛒 電子工業：通路、資服與其他電子": ["3702.TW 大聯大", "2347.TW 聯強", "3036.TW 文曄", "6139.TW 亞翔", "6180.TW 橘子", "2427.TW 宏碁資訊", "6214.TW 精誠", "2354.TW 鴻準", "2359.TW 所羅門", "5434.TW 崇越", "2404.TW 漢唐", "3231.TW 緯創", "3029.TW 零壹", "6183.TW 關貿", "6690.TW 安碁資訊", "5203.TW 訊連", "2480.TW 敦陽科", "3130.TW 一零四", "6811.TW 宏碁智醫", "8044.TW 網家", "2362.TW 藍天", "3013.TW 晟銘電", "6206.TW 飛捷", "3017.TW 奇鋐", "6166.TW 凌華", "2377.TW 微星", "6515.TW 穎崴", "2301.TW 光寶科", "8210.TW 勤誠", "3483.TW 力致", "2397.TW 友通", "3022.TW 威強電", "6117.TW 迎廣", "3046.TW 建碁", "2399.TW 映泰", "2371.TW 大同", "3050.TW 鈺德", "3211.TW 順達", "3515.TW 華擎", "6277.TW 宏正", "6412.TW 群電", "6414.TW 樺漢"],
+    "🏭 傳統產業：水泥/食品/塑膠/紡織": ["1101.TW 台泥", "1102.TW 亞泥", "1216.TW 統一", "1227.TW 佳格", "1210.TW 大成", "1301.TW 台塑", "1303.TW 南亞", "1326.TW 台化", "1304.TW 台聚", "1402.TW 遠東新", "1476.TW 儒鴻", "1477.TW 聚陽", "1409.TW 新纖", "1103.TW 嘉泥", "1104.TW 環泥", "1108.TW 幸福", "1109.TW 信大", "1110.TW 東泥", "1201.TW 味全", "1203.TW 味王", "1215.TW 卜蜂", "1217.TW 愛之味", "1218.TW 泰山", "1219.TW 福壽", "1225.TW 福懋油", "1229.TW 聯華", "1231.TW 聯華食", "1305.TW 華夏", "1308.TW 亞聚", "1309.TW 台達化", "1310.TW 台苯", "1312.TW 國喬", "1313.TW 聯成", "1314.TW 中石化", "1413.TW 宏洲", "1414.TW 東和", "1417.TW 嘉裕", "1419.TW 新紡", "1440.TW 南紡", "1444.TW 力麗", "1447.TW 力鵬", "1451.TW 年興", "1452.TW 宏益", "1455.TW 集盛", "1459.TW 聯發"],
+    "⚙️ 傳統產業：電機/電器/玻璃/造紙/鋼鐵": ["1504.TW 東元", "1519.TW 華城", "1513.TW 中興電", "1514.TW 亞力", "1503.TW 士電", "1605.TW 華新", "1609.TW 大亞", "1802.TW 台玻", "1904.TW 正隆", "1907.TW 永豐餘", "2002.TW 中鋼", "2014.TW 中鴻", "2027.TW 大成鋼", "2006.TW 東和鋼鐵", "1515.TW 力山", "1522.TW 堤維西", "1532.TW 勤美", "1521.TW 大億", "1525.TW 江申", "1537.TW 廣隆", "1536.TW 和大", "1589.TW 永冠-KY", "1524.TW 耿鼎", "4532.TW 瑞智", "4571.TW 鈞興-KY", "8996.TW 高力", "4583.TW 台灣精銳", "1603.TW 華電", "1604.TW 聲寶", "1608.TW 華榮", "1611.TW 中電", "1612.TW 宏泰", "1614.TW 三洋電", "1615.TW 大山", "1617.TW 榮星", "1618.TW 合機", "1805.TW 寶徠", "1806.TW 冠軍", "1808.TW 潤泰材", "1809.TW 中釉", "1810.TW 和成", "1903.TW 士紙", "1905.TW 華紙", "1906.TW 寶隆", "1909.TW 榮成"],
+    "🏗️ 傳統產業：橡膠/汽車/建材營造": ["2105.TW 正新", "2106.TW 建大", "2201.TW 裕隆", "2207.TW 和泰車", "2231.TW 為升", "2204.TW 中華", "2504.TW 國產", "2511.TW 太子", "2542.TW 興富發", "2548.TW 華固", "2520.TW 冠德", "5522.TW 遠雄", "2101.TW 南港", "2102.TW 泰豐", "2103.TW 台橡", "2104.TW 中橡", "2107.TW 厚生", "2108.TW 南帝", "2109.TW 華豐", "2114.TW 鑫豐", "2115.TW 六源", "2206.TW 三陽工業", "2208.TW 台船", "2227.TW 裕日車", "2501.TW 國建", "2505.TW 國揚", "2515.TW 中工", "2524.TW 京城", "2527.TW 宏璟", "2530.TW 華建", "2534.TW 宏盛", "2535.TW 達欣工", "2536.TW 宏普", "2537.TW 聯上發", "2538.TW 基泰", "2539.TW 櫻花建", "2543.TW 皇昌", "2545.TW 皇翔", "2546.TW 根基", "2547.TW 日勝生", "5515.TW 建國", "5534.TW 長虹"],
+    "🚢 傳統產業：航運業 (航空/海運)": ["2603.TW 長榮", "2609.TW 陽明", "2615.TW 萬海", "2618.TW 長榮航", "2610.TW 華航", "2606.TW 裕民", "2637.TW 慧洋-KY", "2605.TW 新興", "2633.TW 台灣高鐵", "2636.TW 台驊投控", "2634.TW 漢翔", "2646.TW 星宇航空", "2612.TW 中航", "2613.TW 中櫃", "2617.TW 台航", "2601.TW 益航", "2611.TW 志信", "5608.TW 四維航", "2607.TW 榮運", "2614.TW 東森", "2642.TW 宅配通", "2616.TW 山隆", "2208.TW 台船", "5609.TW 中菲行", "5607.TW 遠雄港", "2641.TW 正德", "2643.TW 捷迅", "2630.TW 亞航", "2608.TW 大榮", "6757.TW 台灣虎航", "2731.TW 雄獅", "2748.TW 雲品", "2727.TW 王品", "2707.TW 晶華", "2739.TW 寒舍", "8464.TW 億豐", "9914.TW 美利達", "9921.TW 巨大", "9904.TW 寶成", "9910.TW 豐泰"],
+    "🏨 傳統產業：觀光餐旅/綠能休閒/居家生活": ["2707.TW 晶華", "2727.TW 王品", "2731.TW 雄獅", "2739.TW 寒舍", "2748.TW 雲品", "9914.TW 美利達", "9921.TW 巨大", "9904.TW 寶成", "8996.TW 高力", "9910.TW 豐泰", "8464.TW 億豐", "9927.TW 泰銘", "2701.TW 萬企", "2702.TW 華園", "2704.TW 國賓", "2705.TW 六福", "2706.TW 第一店", "2712.TW 遠雄來", "2722.TW 夏都", "2723.TW 美食-KY", "2736.TW 富野", "2742.TW 柏文", "2745.TW 五福", "2753.TW 八方雲集", "8940.TW 新天地", "9902.TW 台火", "9905.TW 大華", "9906.TW 欣巴巴", "9907.TW 統一實", "9908.TW 大台北", "9911.TW 櫻花", "9912.TW 偉聯", "9917.TW 中保科", "9918.TW 欣天然", "9919.TW 康那香", "9924.TW 福興", "9925.TW 新光保", "9926.TW 新海", "9928.TW 中視", "9929.TW 秋雨", "9930.TW 中聯資源", "9931.TW 欣高"],
+    "🏦 金融與服務：金融保險 (金控/銀行/證券)": ["2881.TW 富邦金", "2882.TW 國泰金", "2891.TW 中信金", "2886.TW 兆豐金", "2884.TW 玉山金", "2892.TW 第一金", "2885.TW 元大金", "2880.TW 華南金", "2890.TW 永豐金", "2883.TW 開發金", "2887.TW 台新金", "2801.TW 彰銀", "2834.TW 臺企銀", "5880.TW 合庫金", "5871.TW 中租-KY", "2838.TW 聯邦銀", "2845.TW 遠東銀", "2850.TW 新產", "2851.TW 中再保", "2852.TW 第一保", "2809.TW 京城銀", "5876.TW 上海商銀", "6005.TW 群益證", "2812.TW 台中銀", "2820.TW 華票", "2832.TW 台產", "2888.TW 新光金", "2889.TW 國票金", "2897.TW 王道銀行", "6016.TW 康和證", "6024.TW 群益期", "2855.TW 統一證", "6023.TW 元大期", "2836.TW 高雄銀", "2849.TW 安泰銀", "2867.TW 三商壽", "5878.TW 台名", "6015.TW 宏遠證", "6020.TW 大展證", "6021.TW 大慶證"],
+    "🏬 金融與服務：貿易百貨": ["2912.TW 統一超", "2915.TW 潤泰全", "2903.TW 遠百", "2929.TW 淘帝-KY", "8454.TW 富邦媒", "2908.TW 特力", "2911.TW 麗嬰房", "5904.TW 寶雅", "2901.TW 欣欣", "2905.TW 三商", "2904.TW 匯僑", "2906.TW 高林", "2910.TW 統領", "2913.TW 農林", "2914.TW 滿心", "2923.TW 鼎固-KY", "2939.TW 凱羿-KY", "8442.TW 威宏-KY", "8473.TW 山林水", "9933.TW 中鼎", "9934.TW 成霖", "9935.TW 慶豐富", "9937.TW 全國", "9938.TW 百和", "9939.TW 宏全", "9940.TW 信義", "9941.TW 裕融", "9942.TW 茂順", "9943.TW 好樂迪", "9944.TW 新麗", "9945.TW 潤泰新", "9946.TW 三發地產", "9955.TW 佳龍", "8462.TW 柏文", "8926.TW 台汽電", "8933.TW 愛地雅", "8942.TW 森鉅"],
+    "🤖 趨勢主題：AI人工智慧與伺服器": ["2330.TW 台積電", "2382.TW 廣達", "3231.TW 緯創", "6669.TW 緯穎", "2376.TW 技嘉", "2356.TW 英業達", "3017.TW 奇鋐", "3324.TW 雙鴻", "3661.TW 世芯-KY", "3443.TW 創意", "2317.TW 鴻海", "8210.TW 勤誠", "6515.TW 穎崴", "2454.TW 聯發科", "2303.TW 聯電", "3711.TW 日月光投控", "2379.TW 瑞昱", "3034.TW 聯詠", "8299.TW 群聯", "2353.TW 宏碁", "2357.TW 華碩", "3005.TW 神基", "3013.TW 晟銘電", "4938.TW 和碩", "2377.TW 微星", "2301.TW 光寶科", "3483.TW 力致", "3019.TW 亞光", "2308.TW 台達電", "3037.TW 欣興", "2383.TW 台光電", "6269.TW 台郡", "2368.TW 金像電", "3217.TW 優群", "3023.TW 信邦", "6197.TW 佳必琪", "6214.TW 精誠", "2427.TW 宏碁資訊", "6690.TW 安碁資訊", "3130.TW 一零四"],
+    "🚗 趨勢主題：電動車輛產業": ["2317.TW 鴻海", "2201.TW 裕隆", "1536.TW 和大", "3665.TW 貿聯-KY", "6282.TW 康舒", "6279.TW 胡連", "2308.TW 台達電", "2231.TW 為升", "4739.TW 康普", "5243.TW 乙盛-KY", "8367.TW 建新國際", "2207.TW 和泰車", "2204.TW 中華", "2105.TW 正新", "2106.TW 建大", "1301.TW 台塑", "1303.TW 南亞", "1326.TW 台化", "1304.TW 台聚", "1402.TW 遠東新", "1504.TW 東元", "1519.TW 華城", "1513.TW 中興電", "1514.TW 亞力", "1503.TW 士電", "1605.TW 華新", "1609.TW 大亞", "2002.TW 中鋼", "2014.TW 中鴻", "2027.TW 大成鋼", "2228.TW 劍麟", "2239.TW 英利-KY", "4551.TW 智伸科", "3346.TW 麗清", "2421.TW 建準", "2428.TW 興勤", "3023.TW 信邦", "3031.TW 佰鴻", "3003.TW 健和興", "3015.TW 全漢"],
+    "🛰️ 趨勢主題：太空衛星科技": ["2314.TW 台揚", "3491.TW 昇達科", "2313.TW 華通", "6285.TW 啟碁", "5388.TW 中磊", "2419.TW 仲琦", "3380.TW 明泰", "3234.TW 光環", "3311.TW 閎暉", "3466.TW 致振", "2412.TW 中華電", "3045.TW 台灣大", "4904.TW 遠傳", "2345.TW 智邦", "3596.TW 智易", "3704.TW 合勤控", "4906.TW 正文", "4977.TW 眾達-KY", "4979.TW 華星光", "6442.TW 光聖", "2485.TW 兆赫", "2450.TW 神腦", "3062.TW 建漢", "2498.TW 宏達電", "3149.TW 正達", "2332.TW 友訊", "2455.TW 全新", "3047.TW 訊舟", "3162.TW 精確", "3312.TW 弘憶股", "3682.TW 亞太電", "6112.TW 聚碩", "6190.TW 萬泰科", "6216.TW 居易", "6245.TW 立端", "6263.TW 普萊德", "2321.TW 東訊", "2432.TW 倚強科", "2442.TW 新美齊", "3025.TW 星通"],
+    "🖨️ 趨勢主題：印刷電路板 (PCB)": ["2313.TW 華通", "3037.TW 欣興", "8046.TW 南電", "2368.TW 金像電", "3044.TW 健鼎", "6269.TW 台郡", "6153.TW 嘉聯益", "2367.TW 燿華", "5469.TW 瀚宇博", "8150.TW 南茂", "2383.TW 台光電", "6274.TW 台燿", "2316.TW 楠梓電", "2351.TW 順德", "2385.TW 群光", "2420.TW 新巨", "2439.TW 美律", "2457.TW 飛宏", "2472.TW 立隆電", "2478.TW 大毅", "2484.TW 希華", "3003.TW 健和興", "3015.TW 全漢", "3023.TW 信邦", "3031.TW 佰鴻", "3033.TW 威健", "3090.TW 日電貿", "3305.TW 昇貿", "3308.TW 聯德", "2415.TW 錩新", "2431.TW 聯昌", "2440.TW 太空梭", "2460.TW 建通", "2462.TW 良得電", "2493.TW 揚博", "3209.TW 全科", "3296.TW 勝德", "3416.TW 融程電", "3501.TW 維熹", "3533.TW 嘉澤"],
+    "🍃 趨勢主題：ESG / 淨零碳排與風力發電": ["1513.TW 中興電", "1519.TW 華城", "1514.TW 亞力", "1503.TW 士電", "3708.TW 上緯投控", "9958.TW 世紀鋼", "6806.TW 森崴能源", "6869.TW 雲豹能源", "8996.TW 高力", "1589.TW 永冠-KY", "2013.TW 中鋼構", "1504.TW 東元", "1605.TW 華新", "1609.TW 大亞", "2002.TW 中鋼", "2014.TW 中鴻", "2027.TW 大成鋼", "2006.TW 東和鋼鐵", "1101.TW 台泥", "1102.TW 亞泥", "1301.TW 台塑", "1303.TW 南亞", "1326.TW 台化", "1304.TW 台聚", "1402.TW 遠東新", "2603.TW 長榮", "2609.TW 陽明", "2615.TW 萬海", "2618.TW 長榮航", "2610.TW 華航", "2606.TW 裕民", "2637.TW 慧洋-KY", "2605.TW 新興", "2633.TW 台灣高鐵", "9914.TW 美利達", "9921.TW 巨大", "2308.TW 台達電", "2881.TW 富邦金", "2882.TW 國泰金", "2891.TW 中信金"],
+    "☁️ 趨勢主題：數位雲端與資訊安全": ["6183.TW 關貿", "6214.TW 精誠", "2427.TW 宏碁資訊", "6690.TW 安碁資訊", "6811.TW 宏碁智醫", "5203.TW 訊連", "3029.TW 零壹", "2480.TW 敦陽科", "6112.TW 聚碩", "3130.TW 一零四", "2412.TW 中華電", "3045.TW 台灣大", "4904.TW 遠傳", "3702.TW 大聯大", "2347.TW 聯強", "3036.TW 文曄", "6139.TW 亞翔", "6180.TW 橘子", "2354.TW 鴻準", "2359.TW 所羅門", "5434.TW 崇越", "2404.TW 漢唐", "3231.TW 緯創", "2382.TW 廣達", "6669.TW 緯穎", "2376.TW 技嘉", "2356.TW 英業達", "3017.TW 奇鋐", "3324.TW 雙鴻", "3661.TW 世芯-KY", "3443.TW 創意", "2317.TW 鴻海", "8210.TW 勤誠", "6515.TW 穎崴", "2301.TW 光寶科", "3483.TW 力致", "2353.TW 宏碁", "2357.TW 華碩", "3005.TW 神基", "3013.TW 晟銘電"]
 }
 
 FULL_ETF_LIST = {
@@ -43,7 +47,7 @@ FULL_ETF_LIST = {
 if 'custom_tickers' not in st.session_state: st.session_state.custom_tickers = []
 if 'stock_pool' not in st.session_state: st.session_state.stock_pool = ["2330.TW 台積電", "2317.TW 鴻海", "2454.TW 聯發科", "2881.TW 富邦金", "2603.TW 長榮"]
 
-# --- 自定義 CSS ---
+# --- 自定義 CSS (移除隱藏全部 dataframe 的邏輯，改由元件端控制) ---
 st.markdown("""
     <style>
     html, body, [class*="css"] { font-size: 18px; }
@@ -56,17 +60,16 @@ st.markdown("""
     .trend-bullish { color: #FF4B4B !important; }
     .trend-bearish { color: #00C853 !important; }
     .trend-neutral { color: #777 !important; }
-    [data-testid="stDataFrame"] { display: none; }
-    .show-df [data-testid="stDataFrame"] { display: block !important; }
+    /* 讓側邊欄的按鈕字體大一點 */
+    .stButton>button { width: 100%; }
     </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 核心資料抓取與 API 函數 (全域宣告)
+# 核心資料抓取與 API 函數
 # ==========================================
 @st.cache_data(ttl=86400)
 def fetch_all_twse_tickers():
-    """獲取台股全市場代碼及名稱"""
     try:
         url = "https://api.finmindtrade.com/api/v4/data?dataset=TaiwanStockInfo"
         res = requests.get(url, timeout=10, verify=False)
@@ -83,7 +86,6 @@ def fetch_all_twse_tickers():
 
 @st.cache_data(ttl=300)
 def fetch_data(indicators_dict):
-    """進階抓取模組：包含開高低收、成交量、20日均線"""
     all_data, summary_list = {}, []
     for name, ticker_display in indicators_dict.items():
         try:
@@ -94,12 +96,8 @@ def fetch_data(indicators_dict):
                 df['MA10'] = df['Close'].rolling(window=10).mean()
                 df['MA20'] = df['Close'].rolling(window=20).mean()
                 
-                O = float(df['Open'].iloc[-1])
-                H = float(df['High'].iloc[-1])
-                L = float(df['Low'].iloc[-1])
-                C = float(df['Close'].iloc[-1])
-                V = float(df['Volume'].iloc[-1]) # 成交量(股數/單位)
-                
+                O, H, L, C = float(df['Open'].iloc[-1]), float(df['High'].iloc[-1]), float(df['Low'].iloc[-1]), float(df['Close'].iloc[-1])
+                V = float(df['Volume'].iloc[-1])
                 prev_C = float(df['Close'].iloc[-2])
                 ma5 = float(df['MA5'].iloc[-1]) if len(df) >= 5 else C
                 ma10 = float(df['MA10'].iloc[-1]) if len(df) >= 10 else C
@@ -122,7 +120,6 @@ def fetch_data(indicators_dict):
 
 @st.cache_data(ttl=1800)
 def fetch_institutional_data():
-    """抓取跨日三大法人籌碼"""
     try:
         start_date = (datetime.datetime.now() - datetime.timedelta(days=10)).strftime("%Y-%m-%d")
         url = f"https://api.finmindtrade.com/api/v4/data?dataset=TaiwanStockTotalInstitutionalInvestors&start_date={start_date}"
@@ -150,7 +147,6 @@ def fetch_institutional_data():
 
 @st.cache_data(ttl=600)
 def fetch_global_for_analysis():
-    """專門為動態評析抓取全球重要指數與原物料，避免干擾主畫面卡片"""
     tickers = {"S&P 500": "^GSPC", "那斯達克": "^IXIC", "日經": "^N225", "韓國": "^KS11", "原油": "CL=F", "黃金": "GC=F"}
     res = {}
     for name, symbol in tickers.items():
@@ -164,7 +160,6 @@ def fetch_global_for_analysis():
     return res
 
 def generate_dynamic_analysis(summary, inst_data, global_data):
-    # 提取台股大盤資料
     taiex_item = next((x for x in summary if "加權" in x['name']), None)
     if taiex_item:
         O, H, L, C = taiex_item['open'], taiex_item['high'], taiex_item['low'], taiex_item['current']
@@ -172,12 +167,9 @@ def generate_dynamic_analysis(summary, inst_data, global_data):
         vol = taiex_item['volume']
         ma5, ma20 = taiex_item['ma5'], taiex_item['ma20']
         
-        # 判斷趨勢詞彙
         up_down = "上漲" if chg > 0 else "下跌"
         ma5_rel = "站上" if C >= ma5 else "跌破"
         ma20_rel = "守穩" if C >= ma20 else "失守"
-        
-        # 處理 Yahoo Finance 的大盤成交量 (單位為股數，轉為億，若為0則顯示暫無)
         vol_str = f"{vol / 100000000:,.0f} 億 (Yahoo原始單位)" if vol > 0 else "暫無即時量能資料"
         
         analysis = f"📉 **大盤實況與技術面觀察**：\n今日加權指數開盤為 {O:,.0f} 點，盤中最高來到 {H:,.0f} 點，最低至 {L:,.0f} 點。**終場收在 {C:,.0f} 點，{up_down} {abs(chg):,.0f} 點 ({pct:+.2f}%)**，成交量為 {vol_str}。"
@@ -185,7 +177,6 @@ def generate_dynamic_analysis(summary, inst_data, global_data):
     else:
         analysis = "📉 **大盤實況**：目前暫無加權指數連線資料。\n\n"
 
-    # 籌碼面分析
     if inst_data:
         total_net = inst_data['合計']
         analysis += f"📊 **三大法人實質籌碼 (資料日期: {inst_data['日期']})**：\n法人整體呈現 **{'買超' if total_net > 0 else '賣超'} {abs(total_net):.1f} 億元**。"
@@ -196,28 +187,40 @@ def generate_dynamic_analysis(summary, inst_data, global_data):
         else: analysis += "\n\n"
     else: analysis += "📊 **籌碼面**：目前暫無法人買賣超資料連線。\n\n"
 
-    # 全球與原物料連動分析
     analysis += f"🌍 **國際股市與大宗商品動態**：\n"
     if "S&P 500" in global_data and "那斯達克" in global_data:
-        analysis += f"美股方面，S&P 500 指數收在 {global_data['S&P 500']['current']:,.0f} 點 ({global_data['S&P 500']['change_pct']:+.2f}%)，那斯達克指數收在 {global_data['那斯達克']['current']:,.0f} 點 ({global_data['那斯達克']['change_pct']:+.2f}%)。整體美股走勢對台股高科技與半導體板塊具有關鍵的指引作用。 "
+        analysis += f"美股方面，S&P 500 收在 {global_data['S&P 500']['current']:,.0f} 點 ({global_data['S&P 500']['change_pct']:+.2f}%)，那斯達克收在 {global_data['那斯達克']['current']:,.0f} 點 ({global_data['那斯達克']['change_pct']:+.2f}%)。 "
     if "日經" in global_data and "韓國" in global_data:
-        analysis += f"亞洲鄰國股市部分，日經指數目前為 {global_data['日經']['current']:,.0f} 點 ({global_data['日經']['change_pct']:+.2f}%)，韓國 KOSPI 指數為 {global_data['韓國']['current']:,.0f} 點 ({global_data['韓國']['change_pct']:+.2f}%)。 "
+        analysis += f"亞洲股市部分，日經指數目前為 {global_data['日經']['current']:,.0f} 點 ({global_data['日經']['change_pct']:+.2f}%)，韓國 KOSPI 指數為 {global_data['韓國']['current']:,.0f} 點 ({global_data['韓國']['change_pct']:+.2f}%)。 "
     if "原油" in global_data and "黃金" in global_data:
-        analysis += f"\n原物料與避險指標方面，最新原油報價為 {global_data['原油']['current']:.2f} 美元/桶 ({global_data['原油']['change_pct']:+.2f}%)，黃金報價為 {global_data['黃金']['current']:,.1f} 美元/盎司 ({global_data['黃金']['change_pct']:+.2f}%)。若黃金走強通常反映市場避險情緒升溫，而油價波動則會牽動全球的通膨預期與利率決策方向。"
-
+        analysis += f"\n原物料與避險指標方面，最新原油報價為 {global_data['原油']['current']:.2f} 美元/桶 ({global_data['原油']['change_pct']:+.2f}%)，黃金報價為 {global_data['黃金']['current']:,.1f} 美元/盎司 ({global_data['黃金']['change_pct']:+.2f}%)。"
     return analysis
 
+# 🚀 升級圖表：加入 X, Y 軸與互動式 Tooltip
 def plot_sparkline(df, color_class):
     line_color = '#FF4B4B' if color_class == 'trend-bullish' else '#00C853'
     if color_class == 'trend-neutral': line_color = '#777'
+    
     plot_df = df.tail(30).copy()
     plot_df['DateStr'] = plot_df['Date'].dt.strftime('%m/%d')
     plot_df['Label'] = plot_df['Close'].round(2).astype(str) + " (" + plot_df['DateStr'] + ")"
+    
     max_idx, min_idx = plot_df['Close'].idxmax(), plot_df['Close'].idxmin()
-    base_line = alt.Chart(plot_df).mark_line(interpolate='basis', strokeWidth=3).encode(x=alt.X('Date:T', axis=None), y=alt.Y('Close:Q', scale=alt.Scale(zero=False), axis=None), color=alt.value(line_color))
-    max_text = alt.Chart(plot_df.loc[[max_idx]]).mark_text(align='center', baseline='bottom', dy=-10, color='#555', fontSize=12, fontWeight='bold').encode(x='Date:T', y='Close:Q', text='Label')
-    min_text = alt.Chart(plot_df.loc[[min_idx]]).mark_text(align='center', baseline='top', dy=10, color='#555', fontSize=12, fontWeight='bold').encode(x='Date:T', y='Close:Q', text='Label')
-    return alt.layer(base_line, max_text, min_text).properties(height=100).configure_view(strokeWidth=0)
+    
+    # 建立主線條，開啟 tooltip
+    base_line = alt.Chart(plot_df).mark_line(interpolate='basis', strokeWidth=3).encode(
+        x=alt.X('Date:T', axis=alt.Axis(title='日期', format='%m/%d', labelAngle=-45, grid=False)),
+        y=alt.Y('Close:Q', scale=alt.Scale(zero=False), axis=alt.Axis(title='收盤價', grid=True)),
+        color=alt.value(line_color),
+        tooltip=[alt.Tooltip('DateStr:N', title='日期'), alt.Tooltip('Close:Q', title='收盤價', format='.2f')]
+    )
+    
+    # 標示最高最低點
+    max_text = alt.Chart(plot_df.loc[[max_idx]]).mark_text(align='center', baseline='bottom', dy=-10, color='#555', fontSize=11, fontWeight='bold').encode(x='Date:T', y='Close:Q', text='Label')
+    min_text = alt.Chart(plot_df.loc[[min_idx]]).mark_text(align='center', baseline='top', dy=10, color='#555', fontSize=11, fontWeight='bold').encode(x='Date:T', y='Close:Q', text='Label')
+    
+    # 圖表大小設定並允許互動
+    return alt.layer(base_line, max_text, min_text).properties(height=200).interactive()
 
 def render_cards(summary, history):
     for item in summary:
@@ -236,7 +239,7 @@ def render_cards(summary, history):
         """, unsafe_allow_html=True)
         st.altair_chart(plot_sparkline(history[item['name']], item['color_class']), use_container_width=True)
 
-# --- 🚀 ETF 專屬資料抓取與多執行緒函數 ---
+# --- ETF 專屬資料抓取與多執行緒函數 ---
 def fetch_single_etf(ticker, name):
     try:
         tkr = yf.Ticker(ticker)
@@ -285,6 +288,32 @@ def run_all_etfs_multithread():
             if data: results.append(data)
     return sorted(results, key=lambda x: x["即時殖利率(%)"], reverse=True)
 
+# --- 🚀 JSON 本地快取攔截引擎 ---
+def get_screening_cache(period, interval, pool_id):
+    cache_file = "screening_cache.json"
+    if os.path.exists(cache_file):
+        try:
+            with open(cache_file, "r", encoding="utf-8") as f:
+                cache = json.load(f)
+            if time.time() - cache.get("timestamp", 0) < 10800:
+                if cache.get("period") == period and cache.get("interval") == interval and cache.get("pool_id") == pool_id:
+                    return cache.get("results"), cache.get("timestamp")
+        except: pass
+    return None, None
+
+def save_screening_cache(period, interval, pool_id, results):
+    cache_file = "screening_cache.json"
+    cache = {
+        "timestamp": time.time(),
+        "period": period,
+        "interval": interval,
+        "pool_id": pool_id,
+        "results": results
+    }
+    try:
+        with open(cache_file, "w", encoding="utf-8") as f:
+            json.dump(cache, f, ensure_ascii=False)
+    except: pass
 
 # --- 側邊欄 ---
 st.sidebar.title("📊 儀表板選單")
@@ -338,7 +367,6 @@ if st.session_state.custom_tickers:
             if ticker in st.session_state.stock_pool: st.session_state.stock_pool.remove(ticker)
             st.rerun()
 
-
 # ==========================================
 # 網頁主內容區塊
 # ==========================================
@@ -346,7 +374,6 @@ if page == "🇹🇼 台灣市場 (台股)":
     st.title("🇹🇼 台股核心實況儀表板")
     st.markdown("---")
     
-    # 取得台股大盤資料、籌碼資料、與國際重要指數供評析使用
     tw_indicators = {"加權指數 (TAIEX)": "^TWII", "櫃買指數 (OTC)": "^TWOII", "台積電 (2330)": "2330.TW", "美元/台幣 (匯率)": "TWD=X", "費城半導體 (SOX)": "^SOX"}
     summary, history = fetch_data(tw_indicators)
     inst_data = fetch_institutional_data()
@@ -403,34 +430,56 @@ elif page == "🔍 潛力股自動篩選":
     if st.button("🗑️ 清空清單"): st.session_state.stock_pool = []; st.rerun()
 
     if st.button("🚀 啟動演算法篩選", use_container_width=True):
-        if not current_pool: st.warning("股票池為空，請輸入代碼或由產業池匯入。")
+        if not current_pool: 
+            st.warning("股票池為空，請輸入代碼或由產業池匯入。")
         else:
-            if len(current_pool) > 100: st.warning(f"⚠️ 即將掃描 {len(current_pool)} 檔股票。預計需要數分鐘，請耐心等候。")
+            pool_id = hashlib.md5("".join(sorted(current_pool)).encode('utf-8')).hexdigest()
+            cached_results, cache_timestamp = get_screening_cache(period, interval, pool_id)
             
             st.markdown("### 📊 篩選結果報告")
-            results = {"ma_breakout": [], "vol_up": [], "hammer": []}
-            bar = st.progress(0)
-            status_text = st.empty()
             
-            for idx, ticker_display in enumerate(current_pool):
-                status_text.text(f"正在掃描 {ticker_display} ... ({idx+1}/{len(current_pool)})")
-                try:
-                    yf_ticker = ticker_display.split()[0]
-                    df = yf.Ticker(yf_ticker).history(period=period, interval=interval)
-                    if len(df) >= 20:
-                        df['MA5'], df['MA10'], df['MA20'] = df['Close'].rolling(5).mean(), df['Close'].rolling(10).mean(), df['Close'].rolling(20).mean()
-                        curr, prev = df.iloc[-1], df.iloc[-2]
-                        C, O, H, L, V, prev_V = curr['Close'], curr['Open'], curr['High'], curr['Low'], curr['Volume'], prev['Volume']
-                        ma5, ma10, ma20 = curr['MA5'], curr['MA10'], curr['MA20']
-                        
-                        if (C > O) and ((min(O, C) - L) > abs(C - O)*2) and ((H - max(O, C)) < abs(C - O)*0.5): results["hammer"].append(f"**{ticker_display}** (現價: {C:.2f})")
-                        if (C > prev['Close']) and (V > prev_V * 1.5): results["vol_up"].append(f"**{ticker_display}** (現價: {C:.2f})")
-                        max_ma, min_ma = max(ma5, ma10, ma20), min(ma5, ma10, ma20)
-                        if (((max_ma - min_ma) / min_ma) < 0.03) and (C > max_ma) and (prev['Close'] < max_ma): results["ma_breakout"].append(f"**{ticker_display}** (現價: {C:.2f})")
-                except: pass
-                bar.progress((idx + 1) / len(current_pool))
+            if cached_results:
+                cache_dt = datetime.datetime.fromtimestamp(cache_timestamp).strftime('%Y-%m-%d %H:%M:%S')
+                st.success(f"⚡ 已自動讀取暫存結果 (上次計算時間: {cache_dt})，為您省去重複運算時間！")
+                results = cached_results
+            else:
+                if len(current_pool) > 100: st.warning(f"⚠️ 即將掃描 {len(current_pool)} 檔股票。預計需要數分鐘，請耐心等候。")
+                results = {"ma_breakout": [], "vol_up": [], "hammer": []}
+                bar = st.progress(0)
+                status_text = st.empty()
                 
-            status_text.text("✅ 全面掃描完成！")
+                for idx, ticker_display in enumerate(current_pool):
+                    status_text.text(f"正在掃描 {ticker_display} ... ({idx+1}/{len(current_pool)})")
+                    try:
+                        yf_ticker = ticker_display.split()[0]
+                        df = yf.Ticker(yf_ticker).history(period=period, interval=interval)
+                        if len(df) >= 20:
+                            df['MA5'] = df['Close'].rolling(5).mean()
+                            df['MA10'] = df['Close'].rolling(10).mean()
+                            df['MA20'] = df['Close'].rolling(20).mean()
+                            
+                            curr, prev = df.iloc[-1], df.iloc[-2]
+                            C, O, H, L, V, prev_V = curr['Close'], curr['Open'], curr['High'], curr['Low'], curr['Volume'], prev['Volume']
+                            ma5, ma10, ma20 = curr['MA5'], curr['MA10'], curr['MA20']
+                            
+                            # 🚀 升級功能：計算前三日 (包含今日) 的高低均價
+                            last_3_days = df.tail(3)
+                            low_3d = last_3_days['Low'].min()
+                            high_3d = last_3_days['High'].max()
+                            avg_3d = last_3_days['Close'].mean()
+                            
+                            price_info = f"(現價: {C:.2f} | 近3日低: {low_3d:.2f} | 近3日高: {high_3d:.2f} | 3日均: {avg_3d:.2f})"
+                            
+                            if (C > O) and ((min(O, C) - L) > abs(C - O)*2) and ((H - max(O, C)) < abs(C - O)*0.5): results["hammer"].append(f"**{ticker_display}** {price_info}")
+                            if (C > prev['Close']) and (V > prev_V * 1.5): results["vol_up"].append(f"**{ticker_display}** {price_info}")
+                            max_ma, min_ma = max(ma5, ma10, ma20), min(ma5, ma10, ma20)
+                            if (((max_ma - min_ma) / min_ma) < 0.03) and (C > max_ma) and (prev['Close'] < max_ma): results["ma_breakout"].append(f"**{ticker_display}** {price_info}")
+                    except: pass
+                    bar.progress((idx + 1) / len(current_pool))
+                    
+                status_text.text("✅ 全面掃描完成！")
+                save_screening_cache(period, interval, pool_id, results)
+                
             st.markdown("#### 🔥 均線糾結且向上突破 (起漲爆發)")
             if results["ma_breakout"]: 
                 for s in results["ma_breakout"]: st.error(f"🚀 {s}")
@@ -448,13 +497,12 @@ elif page == "🔍 潛力股自動篩選":
 # 頁面五：高股息/ETF 即時人氣模組
 # ==========================================
 elif page == "💰 即時 ETF 殖利率與人氣模組":
-    st.markdown("<div class='show-df'>", unsafe_allow_html=True)
-    st.title("💰 終極版台股 ETF 即時運算引擎")
+    st.title("💰 終極版全台 ETF 即時運算引擎")
     st.markdown("系統正運用 **多執行緒 (Multi-threading)** 技術，向 Yahoo Finance 引擎以並發方式閃電抓取您專屬 ETF 庫的「今日現價」、「過去一年配息總額」以及「最新成交量」，並即時算出最精準的年化殖利率！")
     st.info("💡 **操作提示**：點擊表格上方的標題（例如：`即時殖利率(%)` 或 `今日成交量(張)`），系統就會自動幫您由高到低排序！")
     st.markdown("---")
     
-    with st.spinner(f"⚡ 正在透過多執行緒引擎閃電抓取您專屬 ETF 庫的即時股價與配息資料... (約需 10~15 秒)"):
+    with st.spinner(f"⚡ 正在透過多執行緒引擎閃電抓取您的專屬 ETF 庫即時資料... (約需 10~15 秒)"):
         etf_data = run_all_etfs_multithread()
         
     if etf_data:
@@ -495,13 +543,11 @@ elif page == "💰 即時 ETF 殖利率與人氣模組":
         )
     else:
         st.error("暫時無法取得 ETF 即時資料，請稍後重試。")
-        
-    st.markdown("</div>", unsafe_allow_html=True)
 
 # ==========================================
-# 底部共用區塊 (自訂名單 + 數據更新時間 + ETF操作提示)
+# 底部共用區塊
 # ==========================================
-if page in ["🇹🇼 台灣台灣市場 (台股)", "🌐 全球市場 (總經)"] and st.session_state.custom_tickers:
+if page in ["🇹🇼 台灣市場 (台股)", "🌐 全球市場 (總經)"] and st.session_state.custom_tickers:
     st.markdown("---")
     st.subheader("🎯 自訂觀察名單")
     custom_dict = {ticker: ticker for ticker in st.session_state.custom_tickers}
@@ -510,12 +556,10 @@ if page in ["🇹🇼 台灣台灣市場 (台股)", "🌐 全球市場 (總經)"
 
 st.markdown("---")
 
-# 轉換為台灣時間 (UTC+8)
 tw_tz = datetime.timezone(datetime.timedelta(hours=8))
 current_time = datetime.datetime.now(tw_tz).strftime('%Y-%m-%d %H:%M:%S')
 st.caption(f"📅 數據最後更新 (台灣當地時間): {current_time}")
 
-# ETF 操作提示與附註，獨立顯示在頁尾
 if page == "💰 即時 ETF 殖利率與人氣模組":
     st.caption("💡 **ETF 操作提示**：選擇高股息 ETF 時，除了看『年化配息率』，更重要的是看『今日成交量』與『五日均量』，成交量的爆發才是最準確的人氣溫度計！")
     st.caption("註：年化殖利率採計過去 365 天內該檔 ETF 實際發放的除息總和，除以 Yahoo Finance 即時現價而得。新上市未滿一年或近期未配息之 ETF，數值可能為 0。")
